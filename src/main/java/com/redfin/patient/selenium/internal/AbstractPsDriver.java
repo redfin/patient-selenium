@@ -1,26 +1,37 @@
 package com.redfin.patient.selenium.internal;
 
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 
 import static com.redfin.validity.Validity.validate;
 
-public abstract class AbstractPsDriver<D extends WebDriver> {
+public abstract class AbstractPsDriver<D extends WebDriver,
+        W extends WebElement> {
 
     private final String driverDescription;
     private final Executor<D> driverExecutor;
+    private final PsConfig<W> config;
 
     public AbstractPsDriver(String driverDescription,
-                            Executor<D> driverExecutor) {
+                            Executor<D> driverExecutor,
+                            PsConfig<W> config) {
         this.driverDescription = validate().withMessage("Cannot use a null or empty driver description.")
                                            .that(driverDescription)
                                            .isNotEmpty();
         this.driverExecutor = validate().withMessage("Cannot use a null driver executor.")
                                         .that(driverExecutor)
                                         .isNotNull();
+        this.config = validate().withMessage("Cannot use a null config.")
+                                .that(config)
+                                .isNotNull();
     }
 
     protected final String getDriverDescription() {
         return driverDescription;
+    }
+
+    protected final PsConfig<W> getConfig() {
+        return config;
     }
 
     public Executor<D> withWrappedDriver() {

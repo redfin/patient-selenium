@@ -5,7 +5,6 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
 import java.time.Duration;
-import java.util.Objects;
 import java.util.function.Predicate;
 
 import static com.redfin.validity.Validity.validate;
@@ -15,29 +14,36 @@ public abstract class AbstractPsElementLocatorBuilder<W extends WebElement,
         L extends AbstractPsElementLocator<W, E>,
         E extends AbstractPsElement<W>> {
 
+    private final String previousDescription;
+    private final PsConfig<W> config;
+
     private PatientWait isPresentWait;
     private PatientWait isNotPresentWait;
     private Duration defaultIsPresentTimeout;
     private Duration defaultIsNotPresentTimeout;
-    private Predicate<W> elementFilter = Objects::nonNull;
+    private Predicate<W> elementFilter;
 
-    public AbstractPsElementLocatorBuilder(PatientWait isPresentWait,
-                                           PatientWait isNotPresentWait,
-                                           Duration defaultIsPresentTimeout,
-                                           Duration defaultIsNotPresentTimeout) {
-        this.isPresentWait = validate().withMessage("Cannot use a null wait.")
-                                       .that(isPresentWait)
-                                       .isNotNull();
-        this.isNotPresentWait = validate().withMessage("Cannot use a null wait.")
-                                          .that(isNotPresentWait)
-                                          .isNotNull();
-        this.defaultIsPresentTimeout = validate().withMessage("Cannot use a null or negative timeout.")
-                                                 .that(defaultIsPresentTimeout)
-                                                 .isGreaterThanOrEqualToZero();
-        this.defaultIsNotPresentTimeout = validate().withMessage("Cannot use a null or negative timeout.")
-                                                    .that(defaultIsNotPresentTimeout)
-                                                    .isGreaterThanOrEqualToZero();
+    public AbstractPsElementLocatorBuilder(String previousDescription,
+                                           PsConfig<W> config) {
+        this.previousDescription = validate().withMessage("Cannot use a null or empty previous description.")
+                                             .that(previousDescription)
+                                             .isNotEmpty();
+        this.config = validate().withMessage("Cannot use a null config.")
+                                .that(config)
+                                .isNotNull();
+        this.isPresentWait = config.getDefaultIsPresentWait();
+        this.isNotPresentWait = config.getDefaultIsNotPresentWait();
+        this.defaultIsPresentTimeout = config.getDefaultIsPresentTimeout();
+        this.defaultIsNotPresentTimeout = config.getDefaultIsNotPresentTimeout();
+        this.elementFilter = config.getDefaultElementFilter();
+    }
 
+    protected final String getPreviousDescription() {
+        return previousDescription;
+    }
+
+    protected final PsConfig<W> getConfig() {
+        return config;
     }
 
     protected final PatientWait getIsPresentWait() {

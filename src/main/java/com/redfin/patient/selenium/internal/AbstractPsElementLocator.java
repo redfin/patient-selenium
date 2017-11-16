@@ -28,6 +28,7 @@ public abstract class AbstractPsElementLocator<W extends WebElement,
     private final PatientWait isNotPresentWait;
     private final Duration defaultTimeout;
     private final Duration defaultNotPresentTimeout;
+    private final PsConfig<W> config;
 
     public AbstractPsElementLocator(String elementLocationDescription,
                                     Supplier<List<W>> seleniumElementSupplier,
@@ -35,7 +36,8 @@ public abstract class AbstractPsElementLocator<W extends WebElement,
                                     PatientWait isPresentWait,
                                     PatientWait isNotPresentWait,
                                     Duration defaultTimeout,
-                                    Duration defaultNotPresentTimeout) {
+                                    Duration defaultNotPresentTimeout,
+                                    PsConfig<W> config) {
         this.elementLocationDescription = validate().withMessage("Cannot use a null or empty element location description.")
                                                     .that(elementLocationDescription)
                                                     .isNotEmpty();
@@ -57,6 +59,13 @@ public abstract class AbstractPsElementLocator<W extends WebElement,
         this.defaultNotPresentTimeout = validate().withMessage("Cannot use a null or negative default not present timeout.")
                                                   .that(defaultNotPresentTimeout)
                                                   .isGreaterThanOrEqualToZero();
+        this.config = validate().withMessage("Cannot use a null config.")
+                                .that(config)
+                                .isNotNull();
+    }
+
+    protected final PsConfig<W> getConfig() {
+        return config;
     }
 
     private Supplier<W> buildElementSupplier(int index,

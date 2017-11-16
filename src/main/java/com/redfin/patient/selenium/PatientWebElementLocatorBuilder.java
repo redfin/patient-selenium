@@ -2,6 +2,7 @@ package com.redfin.patient.selenium;
 
 import com.redfin.patient.selenium.internal.AbstractPsElementLocatorBuilder;
 import com.redfin.patient.selenium.internal.Executor;
+import com.redfin.patient.selenium.internal.PsConfig;
 import org.openqa.selenium.By;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebElement;
@@ -19,27 +20,15 @@ public final class PatientWebElementLocatorBuilder
 
     private static final String BY_FORMAT = "%s.find().by(%s)";
 
-    private final String previousDescription;
     private final Executor<? extends SearchContext> searchExecutor;
-    private final PatientWebConfig config;
 
     public PatientWebElementLocatorBuilder(String previousDescription,
                                            Executor<? extends SearchContext> searchExecutor,
-                                           PatientWebConfig config) {
-        super(validate().withMessage("Cannot use a null patient web config")
-                        .that(config)
-                        .isNotNull()
-                        .getDefaultIsPresentWait(),
-              config.getDefaultIsNotPresentWait(),
-              config.getDefaultIsPresentTimeout(),
-              config.getDefaultIsNotPresentTimeout());
-        this.previousDescription = validate().withMessage("Cannot use a null or empty previous description.")
-                                             .that(previousDescription)
-                                             .isNotEmpty();
+                                           PsConfig<WebElement> config) {
+        super(previousDescription, config);
         this.searchExecutor = validate().withMessage("Cannot use a null search executor.")
                                         .that(searchExecutor)
                                         .isNotNull();
-        this.config = config;
     }
 
     @Override
@@ -54,7 +43,7 @@ public final class PatientWebElementLocatorBuilder
                   .isNotNull();
         Supplier<List<WebElement>> elementSupplier = () -> searchExecutor.apply(e -> e.findElements(by));
         return new PatientWebElementLocator(String.format(BY_FORMAT,
-                                                          previousDescription,
+                                                          getPreviousDescription(),
                                                           by),
                                             elementSupplier,
                                             getElementFilter(),
@@ -62,6 +51,6 @@ public final class PatientWebElementLocatorBuilder
                                             getIsNotPresentWait(),
                                             getDefaultIsPresentTimeout(),
                                             getDefaultIsNotPresentTimeout(),
-                                            config);
+                                            getConfig());
     }
 }

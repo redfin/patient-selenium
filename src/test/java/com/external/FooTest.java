@@ -1,6 +1,6 @@
 package com.external;
 
-import com.redfin.patient.selenium.PatientWebConfig;
+import com.redfin.patient.selenium.internal.PsConfig;
 import com.redfin.patient.selenium.PatientWebDriver;
 import com.redfin.patient.selenium.internal.DefaultDriverExecutor;
 import org.junit.jupiter.api.AfterEach;
@@ -34,7 +34,7 @@ public class FooTest {
     void setup() {
         driver = new PatientWebDriver("chrome",
                                       new DefaultDriverExecutor<>(ChromeDriver::new),
-                                      PatientWebConfig.builder().build());
+                                      PsConfig.builder().build());
     }
 
     @Test

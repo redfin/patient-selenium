@@ -3,6 +3,7 @@ package com.redfin.patient.selenium;
 import com.redfin.patience.PatientWait;
 import com.redfin.patient.selenium.internal.AbstractPsElementLocator;
 import com.redfin.patient.selenium.internal.DefaultElementExecutor;
+import com.redfin.patient.selenium.internal.PsConfig;
 import org.openqa.selenium.WebElement;
 
 import java.time.Duration;
@@ -16,8 +17,6 @@ public final class PatientWebElementLocator
         extends AbstractPsElementLocator<WebElement,
         PatientWebElement> {
 
-    private final PatientWebConfig config;
-
     public PatientWebElementLocator(String elementLocationDescription,
                                     Supplier<List<WebElement>> seleniumElementSupplier,
                                     Predicate<WebElement> elementFilter,
@@ -25,17 +24,15 @@ public final class PatientWebElementLocator
                                     PatientWait isNotPresentWait,
                                     Duration defaultTimeout,
                                     Duration defaultNotPresentTimeout,
-                                    PatientWebConfig config) {
+                                    PsConfig<WebElement> config) {
         super(elementLocationDescription,
               seleniumElementSupplier,
               elementFilter,
               isPresentWait,
               isNotPresentWait,
               defaultTimeout,
-              defaultNotPresentTimeout);
-        this.config = validate().withMessage("Cannot use a null patient web config.")
-                                .that(config)
-                                .isNotNull();
+              defaultNotPresentTimeout,
+              config);
     }
 
     @Override
@@ -54,6 +51,6 @@ public final class PatientWebElementLocator
         return new PatientWebElement(elementDescription,
                                      new DefaultElementExecutor<>(initialElement,
                                                                   elementSupplier),
-                                     config);
+                                     getConfig());
     }
 }
