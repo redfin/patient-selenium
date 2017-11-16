@@ -16,25 +16,8 @@
 
 package com.redfin.patient.selenium.internal;
 
-import com.redfin.patience.PatientWait;
-import org.openqa.selenium.WebElement;
+public interface AbstractPsElementLocatorTestContract<T extends AbstractPsElementLocator>
+        extends PsElementLocatorTestContract<T> {
 
-import java.time.Duration;
-import java.util.function.Predicate;
-
-public interface PsConfig<W extends WebElement,
-        THIS extends PsConfig<W, THIS, B, L, E>,
-        B extends PsElementLocatorBuilder<W, THIS, B, L, E>,
-        L extends PsElementLocator<W, THIS, B, L, E>,
-        E extends PsElement<W, THIS, B, L, E>> {
-
-    PatientWait getDefaultIsPresentWait();
-
-    PatientWait getDefaultIsNotPresentWait();
-
-    Duration getDefaultIsPresentTimeout();
-
-    Duration getDefaultIsNotPresentTimeout();
-
-    Predicate<W> getDefaultElementFilter();
+    // todo
 }

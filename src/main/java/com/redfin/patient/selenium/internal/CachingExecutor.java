@@ -16,25 +16,24 @@
 
 package com.redfin.patient.selenium.internal;
 
-import com.redfin.patience.PatientWait;
-import org.openqa.selenium.WebElement;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-import java.time.Duration;
-import java.util.function.Predicate;
+import static com.redfin.validity.Validity.validate;
 
-public interface PsConfig<W extends WebElement,
-        THIS extends PsConfig<W, THIS, B, L, E>,
-        B extends PsElementLocatorBuilder<W, THIS, B, L, E>,
-        L extends PsElementLocator<W, THIS, B, L, E>,
-        E extends PsElement<W, THIS, B, L, E>> {
+public interface CachingExecutor<T> {
 
-    PatientWait getDefaultIsPresentWait();
+    default void accept(Consumer<T> consumer) {
+        validate().withMessage("Cannot execute with a null consumer.")
+                  .that(consumer)
+                  .isNotNull();
+        apply(t -> {
+            consumer.accept(t);
+            return null;
+        });
+    }
 
-    PatientWait getDefaultIsNotPresentWait();
+    <R> R apply(Function<T, R> function);
 
-    Duration getDefaultIsPresentTimeout();
-
-    Duration getDefaultIsNotPresentTimeout();
-
-    Predicate<W> getDefaultElementFilter();
+    void clearCache();
 }

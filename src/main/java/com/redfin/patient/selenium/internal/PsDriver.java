@@ -16,25 +16,16 @@
 
 package com.redfin.patient.selenium.internal;
 
-import com.redfin.patience.PatientWait;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
-import java.time.Duration;
-import java.util.function.Predicate;
+public interface PsDriver<D extends WebDriver,
+        W extends WebElement,
+        C extends PsConfig<W, C, B, L, E>,
+        B extends PsElementLocatorBuilder<W, C, B, L, E>,
+        L extends PsElementLocator<W, C, B, L, E>,
+        E extends PsElement<W, C, B, L, E>>
+        extends FindsElements<W, C, B, L, E> {
 
-public interface PsConfig<W extends WebElement,
-        THIS extends PsConfig<W, THIS, B, L, E>,
-        B extends PsElementLocatorBuilder<W, THIS, B, L, E>,
-        L extends PsElementLocator<W, THIS, B, L, E>,
-        E extends PsElement<W, THIS, B, L, E>> {
-
-    PatientWait getDefaultIsPresentWait();
-
-    PatientWait getDefaultIsNotPresentWait();
-
-    Duration getDefaultIsPresentTimeout();
-
-    Duration getDefaultIsNotPresentTimeout();
-
-    Predicate<W> getDefaultElementFilter();
+    CachingExecutor<D> withWrappedDriver();
 }

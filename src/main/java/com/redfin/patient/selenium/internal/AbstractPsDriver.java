@@ -1,3 +1,19 @@
+/*
+ * Copyright: (c) 2017 Redfin
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.redfin.patient.selenium.internal;
 
 import org.openqa.selenium.WebDriver;
@@ -6,36 +22,38 @@ import org.openqa.selenium.WebElement;
 import static com.redfin.validity.Validity.validate;
 
 public abstract class AbstractPsDriver<D extends WebDriver,
-        W extends WebElement> {
+        W extends WebElement,
+        C extends PsConfig<W, C, B, L, E>,
+        B extends PsElementLocatorBuilder<W, C, B, L, E>,
+        L extends PsElementLocator<W, C, B, L, E>,
+        E extends PsElement<W, C, B, L, E>>
+        extends AbstractPsBase<W, C, B, L, E>
+        implements PsDriver<D, W, C, B, L, E> {
 
-    private final String driverDescription;
-    private final Executor<D> driverExecutor;
-    private final PsConfig<W> config;
+    private final CachingExecutor<D> driverExecutor;
 
-    public AbstractPsDriver(String driverDescription,
-                            Executor<D> driverExecutor,
-                            PsConfig<W> config) {
-        this.driverDescription = validate().withMessage("Cannot use a null or empty driver description.")
-                                           .that(driverDescription)
-                                           .isNotEmpty();
+    public AbstractPsDriver(String description,
+                            C config,
+                            CachingExecutor<D> driverExecutor) {
+        super(description, config);
         this.driverExecutor = validate().withMessage("Cannot use a null driver executor.")
                                         .that(driverExecutor)
                                         .isNotNull();
-        this.config = validate().withMessage("Cannot use a null config.")
-                                .that(config)
-                                .isNotNull();
     }
 
-    protected final String getDriverDescription() {
-        return driverDescription;
-    }
+    protected abstract B createElementLocatorBuilder(String elementLocatorBuilderDescription,
+                                                     C config);
 
-    protected final PsConfig<W> getConfig() {
-        return config;
-    }
-
-    public Executor<D> withWrappedDriver() {
+    @Override
+    public CachingExecutor<D> withWrappedDriver() {
         return driverExecutor;
+    }
+
+    @Override
+    public B find() {
+        return createElementLocatorBuilder(String.format("%s.find()",
+                                                         getDescription()),
+                                           getConfig());
     }
 
     public void quit() {
@@ -44,16 +62,10 @@ public abstract class AbstractPsDriver<D extends WebDriver,
     }
 
     public void close() {
-        int handleCount = withWrappedDriver().apply(d -> d.getWindowHandles().size());
+        int numHandles = withWrappedDriver().apply(d -> d.getWindowHandles().size());
         withWrappedDriver().accept(WebDriver::close);
-        if (handleCount <= 1) {
-            // Last window handle was closed, clear the cache because the driver was quit
+        if (numHandles <= 1) {
             withWrappedDriver().clearCache();
         }
-    }
-
-    @Override
-    public String toString() {
-        return driverDescription;
     }
 }

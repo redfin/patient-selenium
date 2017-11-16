@@ -14,27 +14,19 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium.internal;
+package com.redfin.patient.selenium;
 
-import com.redfin.patience.PatientWait;
+import com.redfin.patient.selenium.internal.CachingExecutorTestContract;
 import org.openqa.selenium.WebElement;
 
-import java.time.Duration;
-import java.util.function.Predicate;
+final class DefaultElementCachingExecutorTest
+        implements CachingExecutorTestContract<DefaultElementCachingExecutor<WebElement>> {
 
-public interface PsConfig<W extends WebElement,
-        THIS extends PsConfig<W, THIS, B, L, E>,
-        B extends PsElementLocatorBuilder<W, THIS, B, L, E>,
-        L extends PsElementLocator<W, THIS, B, L, E>,
-        E extends PsElement<W, THIS, B, L, E>> {
+    @Override
+    public DefaultElementCachingExecutor<WebElement> getTestInstance() {
+        // todo
+        return null;
+    }
 
-    PatientWait getDefaultIsPresentWait();
-
-    PatientWait getDefaultIsNotPresentWait();
-
-    Duration getDefaultIsPresentTimeout();
-
-    Duration getDefaultIsNotPresentTimeout();
-
-    Predicate<W> getDefaultElementFilter();
+    // todo
 }

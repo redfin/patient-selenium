@@ -18,8 +18,7 @@
     </description>
     <inceptionYear>2017</inceptionYear>
 
-    <!-- Uncomment and verify info once we make this public.
-    <url>https://github.com/redfin/patience</url>
+    <url>https://github.com/redfin/patient-selenium</url>
     <scm>
         <connection>scm:git:git@github.com:redfin/patient-selenium.git</connection>
         <url>https://github.com/redfin/patient-selenium</url>
@@ -33,7 +32,6 @@
         <system>Travis</system>
         <url>https://travis-ci.org/redfin/patient-selenium</url>
     </ciManagement>
-    -->
 
     <licenses>
         <license>
@@ -90,7 +88,7 @@
             <dependency>
                 <groupId>org.seleniumhq.selenium</groupId>
                 <artifactId>selenium-java</artifactId>
-                <version>3.7.1</version>
+                <version>3.5.3</version>
             </dependency>
             <dependency>
                 <groupId>com.redfin</groupId>

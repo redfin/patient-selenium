@@ -17,24 +17,27 @@
 package com.redfin.patient.selenium.internal;
 
 import com.redfin.patience.PatientWait;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
 import java.time.Duration;
 import java.util.function.Predicate;
 
-public interface PsConfig<W extends WebElement,
-        THIS extends PsConfig<W, THIS, B, L, E>,
-        B extends PsElementLocatorBuilder<W, THIS, B, L, E>,
-        L extends PsElementLocator<W, THIS, B, L, E>,
-        E extends PsElement<W, THIS, B, L, E>> {
+public interface PsElementLocatorBuilder<W extends WebElement,
+        C extends PsConfig<W, C, THIS, L, E>,
+        THIS extends PsElementLocatorBuilder<W, C, THIS, L, E>,
+        L extends PsElementLocator<W, C, THIS, L, E>,
+        E extends PsElement<W, C, THIS, L, E>> {
 
-    PatientWait getDefaultIsPresentWait();
+    THIS withIsPresentWait(PatientWait wait);
 
-    PatientWait getDefaultIsNotPresentWait();
+    THIS withIsNotPresentWait(PatientWait wait);
 
-    Duration getDefaultIsPresentTimeout();
+    THIS withIsPresentTimeout(Duration timeout);
 
-    Duration getDefaultIsNotPresentTimeout();
+    THIS withIsNotPresentTimeout(Duration timeout);
 
-    Predicate<W> getDefaultElementFilter();
+    THIS withFilter(Predicate<W> elementFilter);
+
+    L by(By locator);
 }
