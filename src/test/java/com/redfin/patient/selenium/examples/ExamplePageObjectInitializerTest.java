@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium;
+package com.redfin.patient.selenium.examples;
 
-import com.redfin.patient.selenium.internal.CachingExecutorTestContract;
-import org.openqa.selenium.WebDriver;
+import com.redfin.patient.selenium.internal.AbstractPageObjectInitializerTestContract;
 
-final class DefaultDriverCachingExecutorTest
-        implements CachingExecutorTestContract<DefaultDriverCachingExecutor<WebDriver>> {
+final class ExamplePageObjectInitializerTest
+        implements AbstractPageObjectInitializerTestContract<ExamplePageObjectInitializer> {
 
     @Override
-    public DefaultDriverCachingExecutor<WebDriver> getTestInstance() {
+    public ExamplePageObjectInitializer getTestInstance() {
         // todo
         return null;
     }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium;
+package com.redfin.patient.selenium.examples;
 
 import com.redfin.patient.selenium.internal.AbstractPsElement;
 import com.redfin.patient.selenium.internal.CachingExecutor;

@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium;
+package com.redfin.patient.selenium.internal;
 
-import com.redfin.patient.selenium.internal.AbstractPsElementTestContract;
+import com.redfin.patient.selenium.Testable;
 
-final class ExamplePsElementTest
-        implements AbstractPsElementTestContract<ExamplePsElement> {
-
-    @Override
-    public ExamplePsElement getTestInstance() {
-        // todo
-        return null;
-    }
+public interface AbstractPageObjectTestContract<T extends AbstractPageObject>
+        extends Testable<T> {
 
     // todo
 }

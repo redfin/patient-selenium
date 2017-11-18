@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium;
+package com.redfin.patient.selenium.internal;
 
-import com.redfin.patient.selenium.internal.CachingExecutorTestContract;
-import org.openqa.selenium.WebElement;
+import com.redfin.patient.selenium.Testable;
 
-final class DefaultElementCachingExecutorTest
-        implements CachingExecutorTestContract<DefaultElementCachingExecutor<WebElement>> {
-
-    @Override
-    public DefaultElementCachingExecutor<WebElement> getTestInstance() {
-        // todo
-        return null;
-    }
+public interface AbstractPageObjectInitializerTestContract<T extends AbstractPageObjectInitializer>
+        extends Testable<T> {
 
     // todo
 }

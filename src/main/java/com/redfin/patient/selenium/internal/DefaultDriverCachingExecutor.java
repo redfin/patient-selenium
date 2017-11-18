@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium;
+package com.redfin.patient.selenium.internal;
 
-import com.redfin.patient.selenium.internal.CachingExecutor;
 import org.openqa.selenium.WebDriver;
 
 import java.util.function.Function;

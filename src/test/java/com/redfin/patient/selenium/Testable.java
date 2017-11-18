@@ -16,16 +16,8 @@
 
 package com.redfin.patient.selenium;
 
-import com.redfin.patient.selenium.internal.AbstractPsElementLocatorBuilderTestContract;
+@FunctionalInterface
+public interface Testable<T> {
 
-final class ExamplePsElementLocatorBuilderTest
-        implements AbstractPsElementLocatorBuilderTestContract<ExamplePsElementLocatorBuilder> {
-
-    @Override
-    public ExamplePsElementLocatorBuilder getTestInstance() {
-        // todo
-        return null;
-    }
-
-    // todo
+    T getTestInstance();
 }

@@ -16,10 +16,16 @@
 
 package com.redfin.patient.selenium.internal;
 
-import com.redfin.patient.selenium.Testable;
+import org.openqa.selenium.WebDriver;
 
-public interface PsElementLocatorTestContract<T extends PsElementLocator>
-        extends Testable<T> {
+final class DefaultDriverCachingExecutorTest
+        implements CachingExecutorTestContract<DefaultDriverCachingExecutor<WebDriver>> {
+
+    @Override
+    public DefaultDriverCachingExecutor<WebDriver> getTestInstance() {
+        // todo
+        return null;
+    }
 
     // todo
 }

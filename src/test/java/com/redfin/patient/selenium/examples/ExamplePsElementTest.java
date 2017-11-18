@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium.internal;
+package com.redfin.patient.selenium.examples;
 
-import com.redfin.patient.selenium.Testable;
+import com.redfin.patient.selenium.internal.AbstractPsElementTestContract;
 
-public interface PsElementLocatorTestContract<T extends PsElementLocator>
-        extends Testable<T> {
+final class ExamplePsElementTest
+        implements AbstractPsElementTestContract<ExamplePsElement> {
+
+    @Override
+    public ExamplePsElement getTestInstance() {
+        // todo
+        return null;
+    }
 
     // todo
 }

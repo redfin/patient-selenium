@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium;
+package com.redfin.patient.selenium.internal;
 
-import com.redfin.patient.selenium.internal.CachingExecutor;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebElement;
 
@@ -35,11 +34,13 @@ public final class DefaultElementCachingExecutor<W extends WebElement>
 
     private W cachedElement;
 
+    public DefaultElementCachingExecutor(Supplier<W> elementSupplier) {
+        this(null, elementSupplier);
+    }
+
     public DefaultElementCachingExecutor(W initialElement,
                                          Supplier<W> elementSupplier) {
-        this.cachedElement = validate().withMessage("Cannot create an element executor with a null initial element.")
-                                       .that(initialElement)
-                                       .isNotNull();
+        this.cachedElement = initialElement;
         this.elementSupplier = validate().withMessage("Cannot create an element executor with a null element supplier.")
                                          .that(elementSupplier)
                                          .isNotNull();

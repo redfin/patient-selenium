@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium.internal;
+package com.redfin.patient.selenium.examples;
 
-import com.redfin.patient.selenium.Testable;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public interface PsElementLocatorTestContract<T extends PsElementLocator>
-        extends Testable<T> {
+@Target(ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface ExamplePageObjectFind {
 
-    // todo
+    String css();
+    int tryingForSeconds() default 30;
 }

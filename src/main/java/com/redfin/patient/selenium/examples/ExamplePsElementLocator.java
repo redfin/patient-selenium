@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium;
+package com.redfin.patient.selenium.examples;
 
 import com.redfin.patience.PatientWait;
+import com.redfin.patient.selenium.internal.DefaultElementCachingExecutor;
 import com.redfin.patient.selenium.internal.AbstractPsElementLocator;
 import org.openqa.selenium.WebElement;
 

@@ -16,6 +16,8 @@
 
 package com.redfin.patient.selenium.internal;
 
+import com.redfin.patient.selenium.Testable;
+
 public interface PsElementTestContract<T extends PsElement>
         extends Testable<T> {
 

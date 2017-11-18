@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium.internal;
+package com.redfin.patient.selenium.examples;
 
-@FunctionalInterface
-public interface Testable<T> {
+import com.redfin.patient.selenium.internal.AbstractPsConfigTestContract;
 
-    T getTestInstance();
+final class ExamplePsConfigTest
+        implements AbstractPsConfigTestContract<ExamplePsConfig> {
+
+    @Override
+    public ExamplePsConfig getTestInstance() {
+        // todo
+        return null;
+    }
+
+    // todo
 }

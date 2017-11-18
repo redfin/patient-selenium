@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium;
+package com.redfin.patient.selenium.internal;
 
-import com.redfin.patient.selenium.internal.AbstractPsConfigTestContract;
+import org.openqa.selenium.WebElement;
 
-final class ExamplePsConfigTest
-        implements AbstractPsConfigTestContract<ExamplePsConfig> {
+final class DefaultElementCachingExecutorTest
+        implements CachingExecutorTestContract<DefaultElementCachingExecutor<WebElement>> {
 
     @Override
-    public ExamplePsConfig getTestInstance() {
+    public DefaultElementCachingExecutor<WebElement> getTestInstance() {
         // todo
         return null;
     }

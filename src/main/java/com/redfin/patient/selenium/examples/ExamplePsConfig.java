@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium;
+package com.redfin.patient.selenium.examples;
 
 import com.redfin.patience.PatientExecutionHandlers;
 import com.redfin.patience.PatientRetryHandlers;

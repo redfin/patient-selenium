@@ -143,6 +143,11 @@ public abstract class AbstractPsElementLocator<W extends WebElement,
         }
     }
 
+    protected final E buildElement(String elementDescription,
+                                   Supplier<W> elementSupplier) {
+        return buildElement(elementDescription, null, elementSupplier);
+    }
+
     protected abstract E buildElement(String elementDescription,
                                       W initialElement,
                                       Supplier<W> elementSupplier);
@@ -155,7 +160,7 @@ public abstract class AbstractPsElementLocator<W extends WebElement,
     @Override
     public boolean isPresent(Duration timeout) {
         try {
-            get(0, timeout);
+            get(0, timeout).withWrappedElement().accept(e -> { });
             return true;
         } catch (NoSuchElementException ignore) {
             return false;
@@ -209,11 +214,9 @@ public abstract class AbstractPsElementLocator<W extends WebElement,
                   .that(timeout)
                   .isGreaterThanOrEqualToZero();
         Supplier<W> elementSupplier = createElementSupplier(index, timeout);
-        W initialElement = elementSupplier.get();
         return buildElement(String.format(FORMAT,
                                           getDescription(),
                                           index),
-                            initialElement,
                             elementSupplier);
     }
 
