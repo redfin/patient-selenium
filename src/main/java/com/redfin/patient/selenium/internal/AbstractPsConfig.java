@@ -31,52 +31,48 @@ public abstract class AbstractPsConfig<W extends WebElement,
         E extends PsElement<W, THIS, B, L, E>>
         implements PsConfig<W, THIS, B, L, E> {
 
-    private final PatientWait defaultIsPresentWait;
-    private final PatientWait defaultIsNotPresentWait;
-    private final Duration defaultIsPresentTimeout;
-    private final Duration defaultIsNotPresentTimeout;
+    private final PatientWait defaultWait;
+    private final Duration defaultTimeout;
+    private final Duration defaultAssertNotPresentTimeout;
     private final Predicate<W> defaultElementFilter;
 
-    public AbstractPsConfig(PatientWait defaultIsPresentWait,
-                            PatientWait defaultIsNotPresentWait,
-                            Duration defaultIsPresentTimeout,
-                            Duration defaultIsNotPresentTimeout,
+    public AbstractPsConfig(PatientWait defaultWait,
+                            Duration defaultTimeout,
                             Predicate<W> defaultElementFilter) {
-        this.defaultIsPresentWait = validate().withMessage("Cannot use a null wait.")
-                                              .that(defaultIsPresentWait)
-                                              .isNotNull();
-        this.defaultIsNotPresentWait = validate().withMessage("Cannot use a null wait.")
-                                                 .that(defaultIsNotPresentWait)
-                                                 .isNotNull();
-        this.defaultIsPresentTimeout = validate().withMessage("Cannot use a null or negative timeout.")
-                                                 .that(defaultIsPresentTimeout)
-                                                 .isGreaterThanOrEqualToZero();
-        this.defaultIsNotPresentTimeout = validate().withMessage("Cannot use a null or negative timeout.")
-                                                    .that(defaultIsNotPresentTimeout)
-                                                    .isGreaterThanOrEqualToZero();
+        this(defaultWait, defaultTimeout, defaultTimeout, defaultElementFilter);
+    }
+
+    public AbstractPsConfig(PatientWait defaultWait,
+                            Duration defaultTimeout,
+                            Duration defaultAssertNotPresentTimeout,
+                            Predicate<W> defaultElementFilter) {
+        this.defaultWait = validate().withMessage("Cannot use a null wait.")
+                                     .that(defaultWait)
+                                     .isNotNull();
+        this.defaultTimeout = validate().withMessage("Cannot use a null or negative timeout.")
+                                        .that(defaultTimeout)
+                                        .isGreaterThanOrEqualToZero();
+        this.defaultAssertNotPresentTimeout = validate().withMessage("Cannot use a null or negative timeout.")
+                                                        .that(defaultAssertNotPresentTimeout)
+                                                        .isGreaterThanOrEqualToZero();
         this.defaultElementFilter = validate().withMessage("Cannot use a null element filter.")
                                               .that(defaultElementFilter)
                                               .isNotNull();
     }
 
     @Override
-    public final PatientWait getDefaultIsPresentWait() {
-        return defaultIsPresentWait;
+    public final PatientWait getDefaultWait() {
+        return defaultWait;
     }
 
     @Override
-    public final PatientWait getDefaultIsNotPresentWait() {
-        return defaultIsNotPresentWait;
+    public final Duration getDefaultTimeout() {
+        return defaultTimeout;
     }
 
     @Override
-    public final Duration getDefaultIsPresentTimeout() {
-        return defaultIsPresentTimeout;
-    }
-
-    @Override
-    public final Duration getDefaultIsNotPresentTimeout() {
-        return defaultIsNotPresentTimeout;
+    public final Duration getDefaultAssertNotPresentTimeout() {
+        return defaultAssertNotPresentTimeout;
     }
 
     @Override

@@ -35,18 +35,16 @@ public final class ExamplePsElementLocator
 
     public ExamplePsElementLocator(String description,
                                    ExamplePsConfig config,
-                                   PatientWait isPresentWait,
-                                   PatientWait isNotPresentWait,
-                                   Duration isPresentTimeout,
-                                   Duration isNotPresentTimeout,
+                                   PatientWait defaultWait,
+                                   Duration defaultTimeout,
+                                   Duration defaultAssertNotPresentTimeout,
                                    Supplier<List<WebElement>> elementSupplier,
                                    Predicate<WebElement> elementFilter) {
         super(description,
               config,
-              isPresentWait,
-              isNotPresentWait,
-              isPresentTimeout,
-              isNotPresentTimeout,
+              defaultWait,
+              defaultTimeout,
+              defaultAssertNotPresentTimeout,
               elementSupplier,
               elementFilter);
     }

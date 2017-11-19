@@ -43,12 +43,12 @@ public abstract class AbstractPsElement<W extends WebElement,
                                                      C config);
 
     @Override
-    public CachingExecutor<W> withWrappedElement() {
+    public final CachingExecutor<W> withWrappedElement() {
         return elementExecutor;
     }
 
     @Override
-    public B find() {
+    public final B find() {
         return createElementLocatorBuilder(String.format("%s.find()",
                                                          getDescription()),
                                            getConfig());

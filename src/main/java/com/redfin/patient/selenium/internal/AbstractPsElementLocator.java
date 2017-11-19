@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -42,34 +43,29 @@ public abstract class AbstractPsElementLocator<W extends WebElement,
 
     private static final String FORMAT = "%s.get(%d)";
 
-    private final PatientWait isPresentWait;
-    private final PatientWait isNotPresentWait;
-    private final Duration isPresentTimeout;
-    private final Duration isNotPresentTimeout;
+    private final PatientWait wait;
+    private final Duration defaultTimeout;
+    private final Duration defaultAssertNotPresentTimeout;
     private final Supplier<List<W>> elementSupplier;
     private final Predicate<W> elementFilter;
 
     public AbstractPsElementLocator(String description,
                                     C config,
-                                    PatientWait isPresentWait,
-                                    PatientWait isNotPresentWait,
-                                    Duration isPresentTimeout,
-                                    Duration isNotPresentTimeout,
+                                    PatientWait wait,
+                                    Duration defaultTimeout,
+                                    Duration defaultAssertNotPresentTimeout,
                                     Supplier<List<W>> elementSupplier,
                                     Predicate<W> elementFilter) {
         super(description, config);
-        this.isPresentWait = validate().withMessage("Cannot use a null wait.")
-                                       .that(isPresentWait)
-                                       .isNotNull();
-        this.isNotPresentWait = validate().withMessage("Cannot use a null wait.")
-                                          .that(isNotPresentWait)
-                                          .isNotNull();
-        this.isPresentTimeout = validate().withMessage("Cannot use a null or negative timeout.")
-                                          .that(isPresentTimeout)
-                                          .isGreaterThanOrEqualToZero();
-        this.isNotPresentTimeout = validate().withMessage("Cannot use a null or negative timeout.")
-                                             .that(isNotPresentTimeout)
-                                             .isGreaterThanOrEqualToZero();
+        this.wait = validate().withMessage("Cannot use a null wait.")
+                              .that(wait)
+                              .isNotNull();
+        this.defaultTimeout = validate().withMessage("Cannot use a null or negative timeout.")
+                                        .that(defaultTimeout)
+                                        .isNotNull();
+        this.defaultAssertNotPresentTimeout = validate().withMessage("Cannot use a null or negative timeout.")
+                                                        .that(defaultAssertNotPresentTimeout)
+                                                        .isGreaterThanOrEqualToZero();
         this.elementSupplier = validate().withMessage("Cannot use a null element supplier.")
                                          .that(elementSupplier)
                                          .isNotNull();
@@ -78,20 +74,16 @@ public abstract class AbstractPsElementLocator<W extends WebElement,
                                        .isNotNull();
     }
 
-    protected final PatientWait getIsPresentWait() {
-        return isPresentWait;
+    protected final PatientWait getWait() {
+        return wait;
     }
 
-    protected final PatientWait getIsNotPresentWait() {
-        return isNotPresentWait;
+    protected final Duration getDefaultTimeout() {
+        return defaultTimeout;
     }
 
-    protected final Duration getIsPresentTimeout() {
-        return isPresentTimeout;
-    }
-
-    protected final Duration isNotPresentTimeout() {
-        return isNotPresentTimeout;
+    protected final Duration getDefaultAssertNotPresentTimeout() {
+        return defaultAssertNotPresentTimeout;
     }
 
     protected final Supplier<List<W>> getElementSupplier() {
@@ -107,15 +99,15 @@ public abstract class AbstractPsElementLocator<W extends WebElement,
         return () -> {
             try {
                 // Wait until there are index + 1 matching elements
-                List<W> foundElements = isPresentWait.from(() -> expect().withMessage("Received a null selenium element list from the supplier.")
-                                                                         .that(elementSupplier.get())
-                                                                         .isNotNull()
-                                                                         .stream()
-                                                                         .filter(elementFilter)
-                                                                         .limit(index + 1)
-                                                                         .collect(Collectors.toList()))
-                                                     .withFilter(list -> null != list && !list.isEmpty() && list.size() > index)
-                                                     .get(timeout);
+                List<W> foundElements = wait.from(() -> expect().withMessage("Received a null selenium element list from the supplier.")
+                                                                .that(elementSupplier.get())
+                                                                .isNotNull()
+                                                                .stream()
+                                                                .filter(elementFilter)
+                                                                .limit(index + 1)
+                                                                .collect(Collectors.toList()))
+                                            .withFilter(list -> null != list && !list.isEmpty() && list.size() > index)
+                                            .get(timeout);
                 return foundElements.get(index);
             } catch (PatientTimeoutException exception) {
                 // Never found index + 1 matching elements within the timeout, throw exception
@@ -129,14 +121,14 @@ public abstract class AbstractPsElementLocator<W extends WebElement,
 
     private List<W> getAllElements(Duration timeout) {
         try {
-            return isPresentWait.from(() -> expect().withMessage("Received a null selenium element list from the supplier.")
-                                                    .that(elementSupplier.get())
-                                                    .isNotNull()
-                                                    .stream()
-                                                    .filter(elementFilter)
-                                                    .collect(Collectors.toList()))
-                                .withFilter(list -> null != list && !list.isEmpty())
-                                .get(timeout);
+            return wait.from(() -> expect().withMessage("Received a null selenium element list from the supplier.")
+                                           .that(elementSupplier.get())
+                                           .isNotNull()
+                                           .stream()
+                                           .filter(elementFilter)
+                                           .collect(Collectors.toList()))
+                       .withFilter(list -> null != list && !list.isEmpty())
+                       .get(timeout);
         } catch (PatientTimeoutException ignore) {
             // No matching elements found within the timeout, return empty list
             return Collections.emptyList();
@@ -153,60 +145,88 @@ public abstract class AbstractPsElementLocator<W extends WebElement,
                                       Supplier<W> elementSupplier);
 
     @Override
-    public boolean isPresent() {
-        return isPresent(isPresentTimeout);
+    public final void ifPresent(Consumer<E> consumer) {
+        ifPresent(consumer, defaultTimeout);
     }
 
     @Override
-    public boolean isPresent(Duration timeout) {
+    public final void ifPresent(Consumer<E> consumer,
+                                Duration timeout) {
+        validate().withMessage("Cannot use a null consumer.")
+                  .that(consumer)
+                  .isNotNull();
+        validate().withMessage("Cannot use a null or negative timeout.")
+                  .that(timeout)
+                  .isGreaterThanOrEqualToZero();
         try {
-            get(0, timeout).withWrappedElement().accept(e -> { });
-            return true;
+            E element = get(0, timeout);
+            element.withWrappedElement().accept(e -> {
+            });
+            consumer.accept(element);
         } catch (NoSuchElementException ignore) {
-            return false;
+            // do nothing
         }
     }
 
     @Override
-    public boolean isNotPresent() {
-        return isNotPresent(isNotPresentTimeout);
+    public final void assertNotPresent() {
+        assertNotPresent(defaultAssertNotPresentTimeout, null);
     }
 
     @Override
-    public boolean isNotPresent(Duration timeout) {
+    public final void assertNotPresent(String failureMessage) {
+        assertNotPresent(defaultAssertNotPresentTimeout, failureMessage);
+    }
+
+    @Override
+    public final void assertNotPresent(Duration timeout) {
+        assertNotPresent(timeout, null);
+    }
+
+    @Override
+    public final void assertNotPresent(Duration timeout,
+                                       String failureMessage) {
+        validate().withMessage("Cannot use a null or negative timeout.")
+                  .that(timeout)
+                  .isGreaterThanOrEqualToZero();
         try {
             // Wait until no elements match
-            isNotPresentWait.from(() -> expect().withMessage("Received a null selenium element list from the supplier.")
-                                                .that(elementSupplier.get())
-                                                .isNotNull()
-                                                .stream()
-                                                .noneMatch(elementFilter))
-                            .get(timeout);
-            return true;
+            wait.from(() -> expect().withMessage("Received a null selenium element list from the supplier.")
+                                    .that(elementSupplier.get())
+                                    .isNotNull()
+                                    .stream()
+                                    .noneMatch(elementFilter))
+                .get(timeout);
         } catch (PatientTimeoutException ignore) {
             // Timeout reached without getting an empty list
-            return false;
+            if (null == failureMessage || failureMessage.isEmpty()) {
+                throw new AssertionError(String.format("Expected to not find an element matching %s after waiting %s",
+                                                       this,
+                                                       timeout));
+            } else {
+                throw new AssertionError(failureMessage);
+            }
         }
     }
 
     @Override
-    public E get() {
-        return get(0, isPresentTimeout);
+    public final E get() {
+        return get(0, defaultTimeout);
     }
 
     @Override
-    public E get(Duration timeout) {
+    public final E get(Duration timeout) {
         return get(0, timeout);
     }
 
     @Override
-    public E get(int index) {
-        return get(index, isPresentTimeout);
+    public final E get(int index) {
+        return get(index, defaultTimeout);
     }
 
     @Override
-    public E get(int index,
-                 Duration timeout) {
+    public final E get(int index,
+                       Duration timeout) {
         validate().withMessage("Cannot get an element with a negative index.")
                   .that(index)
                   .isAtLeast(0);
@@ -221,12 +241,12 @@ public abstract class AbstractPsElementLocator<W extends WebElement,
     }
 
     @Override
-    public List<E> getAll() {
-        return getAll(isPresentTimeout);
+    public final List<E> getAll() {
+        return getAll(defaultTimeout);
     }
 
     @Override
-    public List<E> getAll(Duration timeout) {
+    public final List<E> getAll(Duration timeout) {
         validate().withMessage("Cannot get elements with a null or negative timeout.")
                   .that(timeout)
                   .isGreaterThanOrEqualToZero();

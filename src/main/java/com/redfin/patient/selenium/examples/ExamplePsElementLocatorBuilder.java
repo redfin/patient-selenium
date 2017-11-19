@@ -22,7 +22,6 @@ import org.openqa.selenium.WebElement;
 
 import java.util.List;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public final class ExamplePsElementLocatorBuilder
@@ -45,16 +44,14 @@ public final class ExamplePsElementLocatorBuilder
 
     @Override
     protected ExamplePsElementLocator build(String description,
-                                            Supplier<List<WebElement>> elementSupplier,
-                                            Predicate<WebElement> elementFilter) {
+                                            Supplier<List<WebElement>> elementSupplier) {
         return new ExamplePsElementLocator(description,
                                            getConfig(),
-                                           getIsPresentWait(),
-                                           getIsNotPresentWait(),
-                                           getIsPresentTimeout(),
-                                           getIsNotPresentTimeout(),
+                                           getDefaultWait(),
+                                           getDefaultTimeout(),
+                                           getDefaultAssertNotPresentTimeout(),
                                            elementSupplier,
-                                           elementFilter);
+                                           getElementFilter());
     }
 
     // Other locating strategies can be added here, for example

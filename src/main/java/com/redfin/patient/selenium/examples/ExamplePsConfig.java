@@ -36,15 +36,13 @@ public final class ExamplePsConfig
         ExamplePsElementLocator,
         ExamplePsElement> {
 
-    public ExamplePsConfig(PatientWait defaultIsPresentWait,
-                           PatientWait defaultIsNotPresentWait,
-                           Duration defaultIsPresentTimeout,
-                           Duration defaultIsNotPresentTimeout,
+    public ExamplePsConfig(PatientWait defaultWait,
+                           Duration defaultTimeout,
+                           Duration defaultAssertNotPresentTimeout,
                            Predicate<WebElement> defaultElementFilter) {
-        super(defaultIsPresentWait,
-              defaultIsNotPresentWait,
-              defaultIsPresentTimeout,
-              defaultIsNotPresentTimeout,
+        super(defaultWait,
+              defaultTimeout,
+              defaultAssertNotPresentTimeout,
               defaultElementFilter);
     }
 
@@ -54,55 +52,43 @@ public final class ExamplePsConfig
 
     public static final class ExamplePsConfigBuilder {
 
-        private PatientWait defaultIsPresentWait;
-        private PatientWait defaultIsNotPresentWait;
-        private Duration defaultIsPresentTimeout;
-        private Duration defaultIsNotPresentTimeout;
+        private PatientWait defaultWait;
+        private Duration defaultTimeout;
+        private Duration defaultAssertNotPresentTimeout;
         private Predicate<WebElement> defaultElementFilter;
 
         private ExamplePsConfigBuilder() {
             Duration defaultTimeout = Duration.ofSeconds(30);
-            PatientWait defaultWait = PatientWait.builder()
-                                                 .withExecutionHandler(PatientExecutionHandlers.ignoring(NoSuchElementException.class))
-                                                 .withRetryHandler(PatientRetryHandlers.fixedDelay(Duration.ofMillis(500)))
-                                                 .withDefaultTimeout(defaultTimeout)
-                                                 .build();
-            defaultIsPresentWait = defaultWait;
-            defaultIsNotPresentWait = defaultWait;
-            defaultIsPresentTimeout = defaultTimeout;
-            defaultIsNotPresentTimeout = defaultTimeout;
+            defaultWait = PatientWait.builder()
+                                     .withExecutionHandler(PatientExecutionHandlers.ignoring(NoSuchElementException.class))
+                                     .withRetryHandler(PatientRetryHandlers.fixedDelay(Duration.ofMillis(500)))
+                                     .withDefaultTimeout(defaultTimeout)
+                                     .build();
+            defaultAssertNotPresentTimeout = defaultTimeout;
             defaultElementFilter = Objects::nonNull;
         }
 
-        public ExamplePsConfigBuilder withDefaultIsPresentWait(PatientWait wait) {
+        public ExamplePsConfigBuilder withDefaultWait(PatientWait wait) {
             validate().withMessage("Cannot use a null wait.")
                       .that(wait)
                       .isNotNull();
-            this.defaultIsPresentWait = wait;
+            this.defaultWait = wait;
             return this;
         }
 
-        public ExamplePsConfigBuilder withDefaultIsNotPresentWait(PatientWait wait) {
-            validate().withMessage("Cannot use a null wait.")
-                      .that(wait)
-                      .isNotNull();
-            this.defaultIsNotPresentWait = wait;
-            return this;
-        }
-
-        public ExamplePsConfigBuilder withDefaultIsPresentTimeout(Duration timeout) {
+        public ExamplePsConfigBuilder withDefaultTimeout(Duration timeout) {
             validate().withMessage("Cannot use a null or negative timeout.")
                       .that(timeout)
                       .isGreaterThanOrEqualToZero();
-            this.defaultIsPresentTimeout = timeout;
+            this.defaultTimeout = timeout;
             return this;
         }
 
-        public ExamplePsConfigBuilder withDefaultIsNotPresentTimeout(Duration timeout) {
+        public ExamplePsConfigBuilder withDefaultAssertNotPresentTimeout(Duration timeout) {
             validate().withMessage("Cannot use a null or negative timeout.")
                       .that(timeout)
                       .isGreaterThanOrEqualToZero();
-            this.defaultIsNotPresentTimeout = timeout;
+            this.defaultAssertNotPresentTimeout = timeout;
             return this;
         }
 
@@ -115,10 +101,9 @@ public final class ExamplePsConfig
         }
 
         public ExamplePsConfig build() {
-            return new ExamplePsConfig(defaultIsPresentWait,
-                                       defaultIsNotPresentWait,
-                                       defaultIsPresentTimeout,
-                                       defaultIsNotPresentTimeout,
+            return new ExamplePsConfig(defaultWait,
+                                       defaultTimeout,
+                                       defaultAssertNotPresentTimeout,
                                        defaultElementFilter);
         }
     }

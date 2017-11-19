@@ -45,12 +45,12 @@ public abstract class AbstractPsDriver<D extends WebDriver,
                                                      C config);
 
     @Override
-    public CachingExecutor<D> withWrappedDriver() {
+    public final CachingExecutor<D> withWrappedDriver() {
         return driverExecutor;
     }
 
     @Override
-    public B find() {
+    public final B find() {
         return createElementLocatorBuilder(String.format("%s.find()",
                                                          getDescription()),
                                            getConfig());

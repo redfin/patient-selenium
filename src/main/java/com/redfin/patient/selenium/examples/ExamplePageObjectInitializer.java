@@ -60,7 +60,7 @@ public final class ExamplePageObjectInitializer
         if (null != find) {
             // There is an annotation, use it to build an element locator
             return Optional.of(currentContext.find()
-                                             .withIsPresentTimeout(buildTimeout(find))
+                                             .withTimeout(buildTimeout(find))
                                              .by(buildBy(find)));
         } else {
             // No annotation, return an empty optional

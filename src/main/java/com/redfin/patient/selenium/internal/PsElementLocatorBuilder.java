@@ -29,13 +29,11 @@ public interface PsElementLocatorBuilder<W extends WebElement,
         L extends PsElementLocator<W, C, THIS, L, E>,
         E extends PsElement<W, C, THIS, L, E>> {
 
-    THIS withIsPresentWait(PatientWait wait);
+    THIS withWait(PatientWait wait);
 
-    THIS withIsNotPresentWait(PatientWait wait);
+    THIS withTimeout(Duration timeout);
 
-    THIS withIsPresentTimeout(Duration timeout);
-
-    THIS withIsNotPresentTimeout(Duration timeout);
+    THIS withAssertNotPresentTimeout(Duration timeout);
 
     THIS withFilter(Predicate<W> elementFilter);
 

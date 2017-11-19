@@ -28,13 +28,11 @@ public interface PsConfig<W extends WebElement,
         L extends PsElementLocator<W, THIS, B, L, E>,
         E extends PsElement<W, THIS, B, L, E>> {
 
-    PatientWait getDefaultIsPresentWait();
+    PatientWait getDefaultWait();
 
-    PatientWait getDefaultIsNotPresentWait();
+    Duration getDefaultTimeout();
 
-    Duration getDefaultIsPresentTimeout();
-
-    Duration getDefaultIsNotPresentTimeout();
+    Duration getDefaultAssertNotPresentTimeout();
 
     Predicate<W> getDefaultElementFilter();
 }

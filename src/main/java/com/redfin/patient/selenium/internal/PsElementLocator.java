@@ -20,6 +20,7 @@ import org.openqa.selenium.WebElement;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.function.Consumer;
 
 public interface PsElementLocator<W extends WebElement,
         C extends PsConfig<W, C, B, THIS, E>,
@@ -27,13 +28,19 @@ public interface PsElementLocator<W extends WebElement,
         THIS extends PsElementLocator<W, C, B, THIS, E>,
         E extends PsElement<W, C, B, THIS, E>> {
 
-    boolean isPresent();
+    void ifPresent(Consumer<E> consumer);
 
-    boolean isPresent(Duration timeout);
+    void ifPresent(Consumer<E> consumer,
+                   Duration timeout);
 
-    boolean isNotPresent();
+    void assertNotPresent();
 
-    boolean isNotPresent(Duration timeout);
+    void assertNotPresent(String failureMessage);
+
+    void assertNotPresent(Duration timeout);
+
+    void assertNotPresent(Duration timeout,
+                          String failureMessage);
 
     E get();
 

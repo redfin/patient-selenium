@@ -40,10 +40,9 @@ public abstract class AbstractPsElementLocatorBuilder<W extends WebElement,
 
     private final Function<By, List<W>> baseSeleniumLocatorFunction;
 
-    private PatientWait isPresentWait;
-    private PatientWait isNotPresentWait;
-    private Duration isPresentTimeout;
-    private Duration isNotPresentTimeout;
+    private PatientWait defaultWait;
+    private Duration defaultTimeout;
+    private Duration defaultAssertNotPresentTimeout;
     private Predicate<W> elementFilter;
 
     public AbstractPsElementLocatorBuilder(String description,
@@ -53,10 +52,9 @@ public abstract class AbstractPsElementLocatorBuilder<W extends WebElement,
         this.baseSeleniumLocatorFunction = validate().withMessage("Cannot use a null base selenium locator function.")
                                                      .that(baseSeleniumLocatorFunction)
                                                      .isNotNull();
-        this.isPresentWait = config.getDefaultIsPresentWait();
-        this.isNotPresentWait = config.getDefaultIsNotPresentWait();
-        this.isPresentTimeout = config.getDefaultIsPresentTimeout();
-        this.isNotPresentTimeout = config.getDefaultIsNotPresentTimeout();
+        this.defaultWait = config.getDefaultWait();
+        this.defaultTimeout = config.getDefaultTimeout();
+        this.defaultAssertNotPresentTimeout = config.getDefaultAssertNotPresentTimeout();
         this.elementFilter = config.getDefaultElementFilter();
     }
 
@@ -64,20 +62,16 @@ public abstract class AbstractPsElementLocatorBuilder<W extends WebElement,
         return baseSeleniumLocatorFunction;
     }
 
-    protected final PatientWait getIsPresentWait() {
-        return isPresentWait;
+    protected final PatientWait getDefaultWait() {
+        return defaultWait;
     }
 
-    protected final PatientWait getIsNotPresentWait() {
-        return isNotPresentWait;
+    protected final Duration getDefaultTimeout() {
+        return defaultTimeout;
     }
 
-    protected final Duration getIsPresentTimeout() {
-        return isPresentTimeout;
-    }
-
-    protected final Duration getIsNotPresentTimeout() {
-        return isNotPresentTimeout;
+    protected final Duration getDefaultAssertNotPresentTimeout() {
+        return defaultAssertNotPresentTimeout;
     }
 
     protected final Predicate<W> getElementFilter() {
@@ -87,47 +81,37 @@ public abstract class AbstractPsElementLocatorBuilder<W extends WebElement,
     protected abstract THIS getThis();
 
     protected abstract L build(String description,
-                               Supplier<List<W>> elementSupplier,
-                               Predicate<W> elementFilter);
+                               Supplier<List<W>> elementSupplier);
 
     @Override
-    public THIS withIsPresentWait(PatientWait wait) {
+    public final THIS withWait(PatientWait wait) {
         validate().withMessage("Cannot use a null wait.")
                   .that(wait)
                   .isNotNull();
-        this.isPresentWait = wait;
+        this.defaultWait = wait;
         return getThis();
     }
 
     @Override
-    public THIS withIsNotPresentWait(PatientWait wait) {
-        validate().withMessage("Cannot use a null wait.")
-                  .that(wait)
-                  .isNotNull();
-        this.isNotPresentWait = wait;
-        return getThis();
-    }
-
-    @Override
-    public THIS withIsPresentTimeout(Duration timeout) {
+    public final THIS withTimeout(Duration timeout) {
         validate().withMessage("Cannot use a null or negative timeout.")
                   .that(timeout)
                   .isGreaterThanOrEqualToZero();
-        this.isPresentTimeout = timeout;
+        this.defaultTimeout = timeout;
         return getThis();
     }
 
     @Override
-    public THIS withIsNotPresentTimeout(Duration timeout) {
+    public final THIS withAssertNotPresentTimeout(Duration timeout) {
         validate().withMessage("Cannot use a null or negative timeout.")
                   .that(timeout)
                   .isGreaterThanOrEqualToZero();
-        this.isNotPresentTimeout = timeout;
+        this.defaultAssertNotPresentTimeout = timeout;
         return getThis();
     }
 
     @Override
-    public THIS withFilter(Predicate<W> elementFilter) {
+    public final THIS withFilter(Predicate<W> elementFilter) {
         validate().withMessage("Cannot use a null element filter.")
                   .that(elementFilter)
                   .isNotNull();
@@ -136,7 +120,7 @@ public abstract class AbstractPsElementLocatorBuilder<W extends WebElement,
     }
 
     @Override
-    public L by(By locator) {
+    public final L by(By locator) {
         validate().withMessage("Cannot find elements with a null locator.")
                   .that(locator)
                   .isNotNull();
@@ -144,7 +128,6 @@ public abstract class AbstractPsElementLocatorBuilder<W extends WebElement,
         return build(String.format(BY_FORMAT,
                                    getDescription(),
                                    locator),
-                     elementSupplier,
-                     getElementFilter());
+                     elementSupplier);
     }
 }
