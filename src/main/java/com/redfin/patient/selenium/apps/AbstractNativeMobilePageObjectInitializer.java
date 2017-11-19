@@ -14,7 +14,7 @@ import java.util.Optional;
 import static com.redfin.validity.Validity.expect;
 import static com.redfin.validity.Validity.validate;
 
-public class iOSNativePageObjectInitializer
+public abstract class AbstractNativeMobilePageObjectInitializer
         extends AbstractPageObjectInitializer<AppiumDriver<MobileElement>,
         MobileElement,
         NativeMobileDriver,
@@ -23,9 +23,16 @@ public class iOSNativePageObjectInitializer
         NativeMobileElementLocator,
         NativeMobileElement> {
 
-    public iOSNativePageObjectInitializer(NativeMobileDriver driver) {
+    public AbstractNativeMobilePageObjectInitializer(NativeMobileDriver driver) {
         super(driver);
     }
+
+    protected abstract Optional<NativeMobileElementLocator> buildPlatformSpecificElementLocatorOptional(FindsElements<MobileElement,
+            NativeMobileConfig,
+            NativeMobileElementLocatorBuilder,
+            NativeMobileElementLocator,
+            NativeMobileElement> currentContext,
+                                                                                                        Field field);
 
     @Override
     protected Optional<NativeMobileElementLocator> buildElementLocatorOptional(FindsElements<MobileElement,
@@ -41,9 +48,9 @@ public class iOSNativePageObjectInitializer
                   .that(field)
                   .isNotNull();
         // Check if the page object field on the outer page object has an annotation on it
-        iOSNativeFindBy find = field.getAnnotation(iOSNativeFindBy.class);
+        NativeMobileFindBy find = field.getAnnotation(NativeMobileFindBy.class);
         if (null != find) {
-            // There is an annotation, use it to build an element locator
+            // There is a native mobile find by present, use it to build an element locator
             int locatorCount = 0;
             By by = null;
             if (!find.id().isEmpty()) {
@@ -53,10 +60,6 @@ public class iOSNativePageObjectInitializer
             if (!find.accessibility().isEmpty()) {
                 locatorCount++;
                 by = MobileBy.AccessibilityId(find.accessibility());
-            }
-            if (!find.uiAutomation().isEmpty()) {
-                locatorCount++;
-                by = MobileBy.IosUIAutomation(find.uiAutomation());
             }
             if (!find.xpath().isEmpty()) {
                 locatorCount++;
@@ -73,8 +76,8 @@ public class iOSNativePageObjectInitializer
                                              .withTimeout(timeout)
                                              .by(by));
         } else {
-            // No annotation, return an empty optional
-            return Optional.empty();
+            // No native mobile find, check for a platform specific annotation optional
+            return buildPlatformSpecificElementLocatorOptional(currentContext, field);
         }
     }
 }

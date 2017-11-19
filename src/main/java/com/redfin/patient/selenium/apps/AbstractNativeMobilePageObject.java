@@ -4,7 +4,7 @@ import com.redfin.patient.selenium.internal.AbstractPageObject;
 import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.MobileElement;
 
-public class AbstractNativeMobilePageObject
+public abstract class AbstractNativeMobilePageObject<T extends AbstractNativeMobilePageObject<T>>
         extends AbstractPageObject<AppiumDriver<MobileElement>,
         MobileElement,
         NativeMobileDriver,
@@ -13,5 +13,5 @@ public class AbstractNativeMobilePageObject
         NativeMobileElementLocator,
         NativeMobileElement> {
 
-    // todo : add mobile methods we need
+    protected abstract T getThis();
 }
