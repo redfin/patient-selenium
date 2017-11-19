@@ -49,15 +49,15 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
     protected abstract Optional<L> buildElementLocatorOptional(FindsElements<W, C, B, L, E> currentContext,
                                                                Field field);
 
-    public final <T extends AbstractPageObject<D, W, P, C, B, L, E>> void initialize(T page) {
+    public final <T extends AbstractPageObject<T, D, W, P, C, B, L, E>> void initialize(T page) {
         validate().withMessage("Cannot use a null page.")
                   .that(page)
                   .isNotNull();
         initialize(driver, page);
     }
 
-    public final <T extends AbstractPageObject<D, W, P, C, B, L, E>> void initialize(FindsElements<W, C, B, L, E> searchContext,
-                                                                                     T page) {
+    public final <T extends AbstractPageObject<T, D, W, P, C, B, L, E>> void initialize(FindsElements<W, C, B, L, E> searchContext,
+                                                                                        T page) {
         validate().withMessage("Cannot use a null search context.")
                   .that(searchContext)
                   .isNotNull();

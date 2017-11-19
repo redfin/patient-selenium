@@ -17,9 +17,11 @@
 package com.redfin.patient.selenium.internal;
 
 import com.redfin.patience.PatientWait;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 
 import java.time.Duration;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public interface PsConfig<W extends WebElement,
@@ -35,4 +37,6 @@ public interface PsConfig<W extends WebElement,
     Duration getDefaultAssertNotPresentTimeout();
 
     Predicate<W> getDefaultElementFilter();
+
+    Function<String, NoSuchElementException> getElementNotFoundBuilderFunction();
 }

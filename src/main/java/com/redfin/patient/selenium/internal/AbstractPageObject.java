@@ -21,7 +21,8 @@ import org.openqa.selenium.WebElement;
 
 import static com.redfin.validity.Validity.expect;
 
-public abstract class AbstractPageObject<D extends WebDriver,
+public abstract class AbstractPageObject<THIS extends AbstractPageObject<THIS, D, W, P, C, B, L, E>,
+        D extends WebDriver,
         W extends WebElement,
         P extends PsDriver<D, W, C, B, L, E>,
         C extends PsConfig<W, C, B, L, E>,
@@ -36,4 +37,6 @@ public abstract class AbstractPageObject<D extends WebDriver,
                        .that(driver)
                        .isNotNull();
     }
+
+    protected abstract THIS getThis();
 }

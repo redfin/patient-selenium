@@ -28,10 +28,18 @@ public interface PsElementLocator<W extends WebElement,
         THIS extends PsElementLocator<W, C, B, THIS, E>,
         E extends PsElement<W, C, B, THIS, E>> {
 
+    boolean isPresent();
+
+    boolean isPresent(Duration timeout);
+
     void ifPresent(Consumer<E> consumer);
 
     void ifPresent(Consumer<E> consumer,
                    Duration timeout);
+
+    boolean isNotPresent();
+
+    boolean isNotPresent(Duration timeout);
 
     void assertNotPresent();
 

@@ -18,13 +18,13 @@ package com.redfin.patient.selenium.internal;
 
 import com.redfin.patience.PatientTimeoutException;
 import com.redfin.patience.PatientWait;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -145,6 +145,21 @@ public abstract class AbstractPsElementLocator<W extends WebElement,
                                       Supplier<W> elementSupplier);
 
     @Override
+    public final boolean isPresent() {
+        return isPresent(defaultTimeout);
+    }
+
+    @Override
+    public final boolean isPresent(Duration timeout) {
+        try {
+            get(0, timeout).withWrappedElement().accept(e -> { });
+            return true;
+        } catch (NoSuchElementException ignore) {
+            return false;
+        }
+    }
+
+    @Override
     public final void ifPresent(Consumer<E> consumer) {
         ifPresent(consumer, defaultTimeout);
     }
@@ -165,6 +180,23 @@ public abstract class AbstractPsElementLocator<W extends WebElement,
             consumer.accept(element);
         } catch (NoSuchElementException ignore) {
             // do nothing
+        }
+    }
+
+    @Override
+    public final boolean isNotPresent() {
+        return isNotPresent(defaultAssertNotPresentTimeout);
+    }
+
+    @Override
+    public final boolean isNotPresent(Duration timeout) {
+        try {
+            assertNotPresent(timeout);
+            // No error means the element is not present
+            return true;
+        } catch (AssertionError ignore) {
+            // Assertion thrown means the element is present
+            return false;
         }
     }
 
