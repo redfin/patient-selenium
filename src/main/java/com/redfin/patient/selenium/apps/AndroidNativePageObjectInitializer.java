@@ -16,7 +16,7 @@
 
 package com.redfin.patient.selenium.apps;
 
-import com.redfin.patient.selenium.internal.FindsElements;
+import com.redfin.patient.selenium.FindsElements;
 import io.appium.java_client.MobileBy;
 import io.appium.java_client.MobileElement;
 import org.openqa.selenium.By;
@@ -70,7 +70,7 @@ public class AndroidNativePageObjectInitializer
                 locatorCount++;
                 by = MobileBy.xpath(find.xpath());
             }
-            expect().withMessage("Must select exactly 1 locator strategy for the iOSNativeFindBy annotation")
+            expect().withMessage("Must select exactly 1 locator strategy for the IOSNativeFindBy annotation")
                     .that(locatorCount)
                     .isEqualTo(1);
             expect().withMessage("There was a selector strategy located but the by is null.")

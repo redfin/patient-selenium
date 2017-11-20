@@ -14,16 +14,26 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium.internal;
+package com.redfin.patient.selenium.apps;
 
-import org.openqa.selenium.WebElement;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public interface PsElement<W extends WebElement,
-        C extends PsConfig<W, C, B, L, THIS>,
-        B extends PsElementLocatorBuilder<W, C, B, L, THIS>,
-        L extends PsElementLocator<W, C, B, L, THIS>,
-        THIS extends PsElement<W, C, B, L, THIS>>
-        extends FindsElements<W, C, B, L, THIS> {
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD, ElementType.PARAMETER})
+public @interface IOSNativeFindBy {
 
-    CachingExecutor<W> withWrappedElement();
+    String id() default "";
+
+    String accessibility() default "";
+
+    String uiAutomation() default "";
+
+    String xpath() default "";
+
+    int tryingForSeconds() default 30;
 }

@@ -14,28 +14,29 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium.internal;
+package com.redfin.patient.selenium;
 
 import com.redfin.patience.PatientWait;
-import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 
 import java.time.Duration;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
-public interface PsElementLocatorBuilder<W extends WebElement,
-        C extends PsConfig<W, C, THIS, L, E>,
-        THIS extends PsElementLocatorBuilder<W, C, THIS, L, E>,
-        L extends PsElementLocator<W, C, THIS, L, E>,
-        E extends PsElement<W, C, THIS, L, E>> {
+public interface PsConfig<W extends WebElement,
+        THIS extends PsConfig<W, THIS, B, L, E>,
+        B extends PsElementLocatorBuilder<W, THIS, B, L, E>,
+        L extends PsElementLocator<W, THIS, B, L, E>,
+        E extends PsElement<W, THIS, B, L, E>> {
 
-    THIS withWait(PatientWait wait);
+    PatientWait getDefaultWait();
 
-    THIS withTimeout(Duration timeout);
+    Duration getDefaultTimeout();
 
-    THIS withAssertNotPresentTimeout(Duration timeout);
+    Duration getDefaultAssertNotPresentTimeout();
 
-    THIS withFilter(Predicate<W> elementFilter);
+    Predicate<W> getDefaultElementFilter();
 
-    L by(By locator);
+    Function<String, NoSuchElementException> getElementNotFoundExceptionBuilderFunction();
 }

@@ -14,26 +14,15 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium.apps;
+package com.redfin.patient.selenium;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.openqa.selenium.WebElement;
 
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.PARAMETER})
-public @interface iOSNativeFindBy {
+public interface FindsElements<W extends WebElement,
+        C extends PsConfig<W, C, B, L, E>,
+        B extends PsElementLocatorBuilder<W, C, B, L, E>,
+        L extends PsElementLocator<W, C, B, L, E>,
+        E extends PsElement<W, C, B, L, E>> {
 
-    String id() default "";
-
-    String accessibility() default "";
-
-    String uiAutomation() default "";
-
-    String xpath() default "";
-
-    int tryingForSeconds() default 30;
+    B find();
 }

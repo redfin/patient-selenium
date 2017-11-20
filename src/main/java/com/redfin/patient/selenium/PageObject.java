@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium.internal;
+package com.redfin.patient.selenium;
 
-import com.redfin.patient.selenium.PsElement;
-import com.redfin.patient.selenium.Testable;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 
-public interface PsElementTestContract<T extends PsElement>
-        extends Testable<T> {
+public interface PageObject<D extends WebDriver,
+        W extends WebElement,
+        P extends PsDriver<D, W, C, B, L, E>,
+        C extends PsConfig<W, C, B, L, E>,
+        B extends PsElementLocatorBuilder<W, C, B, L, E>,
+        L extends PsElementLocator<W, C, B, L, E>,
+        E extends PsElement<W, C, B, L, E>> {
 
-    // todo
+    P getDriver();
 }

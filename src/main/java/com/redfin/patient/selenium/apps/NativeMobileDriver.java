@@ -17,7 +17,7 @@
 package com.redfin.patient.selenium.apps;
 
 import com.redfin.patient.selenium.internal.AbstractPsDriver;
-import com.redfin.patient.selenium.internal.CachingExecutor;
+import com.redfin.patient.selenium.CachingExecutor;
 import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.MobileElement;
 

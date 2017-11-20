@@ -16,6 +16,12 @@
 
 package com.redfin.patient.selenium.internal;
 
+import com.redfin.patient.selenium.PageObject;
+import com.redfin.patient.selenium.PsConfig;
+import com.redfin.patient.selenium.PsDriver;
+import com.redfin.patient.selenium.PsElement;
+import com.redfin.patient.selenium.PsElementLocator;
+import com.redfin.patient.selenium.PsElementLocatorBuilder;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
@@ -28,11 +34,13 @@ public abstract class AbstractPageObject<THIS extends AbstractPageObject<THIS, D
         C extends PsConfig<W, C, B, L, E>,
         B extends PsElementLocatorBuilder<W, C, B, L, E>,
         L extends PsElementLocator<W, C, B, L, E>,
-        E extends PsElement<W, C, B, L, E>> {
+        E extends PsElement<W, C, B, L, E>>
+        implements PageObject<D, W, P, C, B, L, E> {
 
     private final P driver = null;
 
-    protected final P getPatientDriver() {
+    @Override
+    public final P getDriver() {
         return expect().withMessage("This page object has not been initialized by a page object initializer.")
                        .that(driver)
                        .isNotNull();

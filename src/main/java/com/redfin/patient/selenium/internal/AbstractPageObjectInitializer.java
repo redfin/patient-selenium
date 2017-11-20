@@ -16,6 +16,14 @@
 
 package com.redfin.patient.selenium.internal;
 
+import com.redfin.patient.selenium.FindsElements;
+import com.redfin.patient.selenium.PageObject;
+import com.redfin.patient.selenium.PageObjectInitializer;
+import com.redfin.patient.selenium.PsConfig;
+import com.redfin.patient.selenium.PsDriver;
+import com.redfin.patient.selenium.PsElement;
+import com.redfin.patient.selenium.PsElementLocator;
+import com.redfin.patient.selenium.PsElementLocatorBuilder;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
@@ -32,7 +40,8 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
         C extends PsConfig<W, C, B, L, E>,
         B extends PsElementLocatorBuilder<W, C, B, L, E>,
         L extends PsElementLocator<W, C, B, L, E>,
-        E extends PsElement<W, C, B, L, E>> {
+        E extends PsElement<W, C, B, L, E>>
+        implements PageObjectInitializer<D, W, P, C, B, L, E> {
 
     private final P driver;
 
@@ -49,15 +58,14 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
     protected abstract Optional<L> buildElementLocatorOptional(FindsElements<W, C, B, L, E> currentContext,
                                                                Field field);
 
-    public final <T extends AbstractPageObject<T, D, W, P, C, B, L, E>> void initialize(T page) {
-        validate().withMessage("Cannot use a null page.")
-                  .that(page)
-                  .isNotNull();
+    @Override
+    public final <T extends PageObject<D, W, P, C, B, L, E>> void initialize(T page) {
         initialize(driver, page);
     }
 
-    public final <T extends AbstractPageObject<T, D, W, P, C, B, L, E>> void initialize(FindsElements<W, C, B, L, E> searchContext,
-                                                                                        T page) {
+    @Override
+    public final <T extends PageObject<D, W, P, C, B, L, E>> void initialize(FindsElements<W, C, B, L, E> searchContext,
+                                                                             T page) {
         validate().withMessage("Cannot use a null search context.")
                   .that(searchContext)
                   .isNotNull();

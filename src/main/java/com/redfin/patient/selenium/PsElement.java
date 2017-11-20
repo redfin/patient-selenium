@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium.internal;
+package com.redfin.patient.selenium;
 
-import com.redfin.patient.selenium.PsElement;
-import com.redfin.patient.selenium.Testable;
+import org.openqa.selenium.WebElement;
 
-public interface PsElementTestContract<T extends PsElement>
-        extends Testable<T> {
+public interface PsElement<W extends WebElement,
+        C extends PsConfig<W, C, B, L, THIS>,
+        B extends PsElementLocatorBuilder<W, C, B, L, THIS>,
+        L extends PsElementLocator<W, C, B, L, THIS>,
+        THIS extends PsElement<W, C, B, L, THIS>>
+        extends FindsElements<W, C, B, L, THIS> {
 
-    // todo
+    CachingExecutor<W> withWrappedElement();
 }

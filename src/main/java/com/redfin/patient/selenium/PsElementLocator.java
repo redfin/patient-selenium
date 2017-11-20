@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium.internal;
+package com.redfin.patient.selenium;
 
 import org.openqa.selenium.WebElement;
 

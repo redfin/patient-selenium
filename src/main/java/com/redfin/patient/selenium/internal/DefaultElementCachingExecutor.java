@@ -16,6 +16,7 @@
 
 package com.redfin.patient.selenium.internal;
 
+import com.redfin.patient.selenium.CachingExecutor;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebElement;
 

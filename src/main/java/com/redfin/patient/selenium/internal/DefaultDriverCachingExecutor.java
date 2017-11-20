@@ -16,6 +16,7 @@
 
 package com.redfin.patient.selenium.internal;
 
+import com.redfin.patient.selenium.CachingExecutor;
 import org.openqa.selenium.WebDriver;
 
 import java.util.function.Function;

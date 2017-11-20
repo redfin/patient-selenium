@@ -17,7 +17,7 @@
 package com.redfin.patient.selenium.apps;
 
 import com.redfin.patient.selenium.internal.AbstractPsElement;
-import com.redfin.patient.selenium.internal.CachingExecutor;
+import com.redfin.patient.selenium.CachingExecutor;
 import io.appium.java_client.MobileElement;
 
 public class NativeMobileElement

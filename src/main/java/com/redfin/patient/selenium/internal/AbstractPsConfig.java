@@ -17,6 +17,10 @@
 package com.redfin.patient.selenium.internal;
 
 import com.redfin.patience.PatientWait;
+import com.redfin.patient.selenium.PsConfig;
+import com.redfin.patient.selenium.PsElement;
+import com.redfin.patient.selenium.PsElementLocator;
+import com.redfin.patient.selenium.PsElementLocatorBuilder;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 
@@ -37,20 +41,20 @@ public abstract class AbstractPsConfig<W extends WebElement,
     private final Duration defaultTimeout;
     private final Duration defaultAssertNotPresentTimeout;
     private final Predicate<W> defaultElementFilter;
-    private final Function<String, NoSuchElementException> elementNotFoundBuilderFunction;
+    private final Function<String, NoSuchElementException> elementNotFoundExceptionBuilderFunction;
 
     public AbstractPsConfig(PatientWait defaultWait,
                             Duration defaultTimeout,
                             Predicate<W> defaultElementFilter,
-                            Function<String, NoSuchElementException> elementNotFoundBuilderFunction) {
-        this(defaultWait, defaultTimeout, defaultTimeout, defaultElementFilter, elementNotFoundBuilderFunction);
+                            Function<String, NoSuchElementException> elementNotFoundExceptionBuilderFunction) {
+        this(defaultWait, defaultTimeout, defaultTimeout, defaultElementFilter, elementNotFoundExceptionBuilderFunction);
     }
 
     public AbstractPsConfig(PatientWait defaultWait,
                             Duration defaultTimeout,
                             Duration defaultAssertNotPresentTimeout,
                             Predicate<W> defaultElementFilter,
-                            Function<String, NoSuchElementException> elementNotFoundBuilderFunction) {
+                            Function<String, NoSuchElementException> elementNotFoundExceptionBuilderFunction) {
         this.defaultWait = validate().withMessage("Cannot use a null wait.")
                                      .that(defaultWait)
                                      .isNotNull();
@@ -63,9 +67,9 @@ public abstract class AbstractPsConfig<W extends WebElement,
         this.defaultElementFilter = validate().withMessage("Cannot use a null element filter.")
                                               .that(defaultElementFilter)
                                               .isNotNull();
-        this.elementNotFoundBuilderFunction = validate().withMessage("Cannot use a null element not found function.")
-                                                        .that(elementNotFoundBuilderFunction)
-                                                        .isNotNull();
+        this.elementNotFoundExceptionBuilderFunction = validate().withMessage("Cannot use a null element not found function.")
+                                                                 .that(elementNotFoundExceptionBuilderFunction)
+                                                                 .isNotNull();
     }
 
     @Override
@@ -89,7 +93,7 @@ public abstract class AbstractPsConfig<W extends WebElement,
     }
 
     @Override
-    public final Function<String, NoSuchElementException> getElementNotFoundBuilderFunction() {
-        return elementNotFoundBuilderFunction;
+    public final Function<String, NoSuchElementException> getElementNotFoundExceptionBuilderFunction() {
+        return elementNotFoundExceptionBuilderFunction;
     }
 }

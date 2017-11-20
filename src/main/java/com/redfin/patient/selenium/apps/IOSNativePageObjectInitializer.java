@@ -16,9 +16,7 @@
 
 package com.redfin.patient.selenium.apps;
 
-import com.redfin.patient.selenium.internal.AbstractPageObjectInitializer;
-import com.redfin.patient.selenium.internal.FindsElements;
-import io.appium.java_client.AppiumDriver;
+import com.redfin.patient.selenium.FindsElements;
 import io.appium.java_client.MobileBy;
 import io.appium.java_client.MobileElement;
 import org.openqa.selenium.By;
@@ -30,26 +28,20 @@ import java.util.Optional;
 import static com.redfin.validity.Validity.expect;
 import static com.redfin.validity.Validity.validate;
 
-public class iOSNativePageObjectInitializer
-        extends AbstractPageObjectInitializer<AppiumDriver<MobileElement>,
-        MobileElement,
-        NativeMobileDriver,
-        NativeMobileConfig,
-        NativeMobileElementLocatorBuilder,
-        NativeMobileElementLocator,
-        NativeMobileElement> {
+public class IOSNativePageObjectInitializer
+        extends AbstractNativeMobilePageObjectInitializer {
 
-    public iOSNativePageObjectInitializer(NativeMobileDriver driver) {
+    public IOSNativePageObjectInitializer(NativeMobileDriver driver) {
         super(driver);
     }
 
     @Override
-    protected Optional<NativeMobileElementLocator> buildElementLocatorOptional(FindsElements<MobileElement,
+    protected Optional<NativeMobileElementLocator> buildPlatformSpecificElementLocatorOptional(FindsElements<MobileElement,
             NativeMobileConfig,
             NativeMobileElementLocatorBuilder,
             NativeMobileElementLocator,
             NativeMobileElement> currentContext,
-                                                                               Field field) {
+                                                                                               Field field) {
         validate().withMessage("Cannot use a null current search context")
                   .that(currentContext)
                   .isNotNull();
@@ -57,7 +49,7 @@ public class iOSNativePageObjectInitializer
                   .that(field)
                   .isNotNull();
         // Check if the page object field on the outer page object has an annotation on it
-        iOSNativeFindBy find = field.getAnnotation(iOSNativeFindBy.class);
+        IOSNativeFindBy find = field.getAnnotation(IOSNativeFindBy.class);
         if (null != find) {
             // There is an annotation, use it to build an element locator
             int locatorCount = 0;
@@ -78,7 +70,7 @@ public class iOSNativePageObjectInitializer
                 locatorCount++;
                 by = MobileBy.xpath(find.xpath());
             }
-            expect().withMessage("Must select exactly 1 locator strategy for the iOSNativeFindBy annotation")
+            expect().withMessage("Must select exactly 1 locator strategy for the IOSNativeFindBy annotation")
                     .that(locatorCount)
                     .isEqualTo(1);
             expect().withMessage("There was a selector strategy located but the by is null.")

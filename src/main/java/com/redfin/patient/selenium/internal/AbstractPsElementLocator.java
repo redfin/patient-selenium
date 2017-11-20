@@ -18,6 +18,10 @@ package com.redfin.patient.selenium.internal;
 
 import com.redfin.patience.PatientTimeoutException;
 import com.redfin.patience.PatientWait;
+import com.redfin.patient.selenium.PsConfig;
+import com.redfin.patient.selenium.PsElement;
+import com.redfin.patient.selenium.PsElementLocator;
+import com.redfin.patient.selenium.PsElementLocatorBuilder;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 
@@ -152,7 +156,8 @@ public abstract class AbstractPsElementLocator<W extends WebElement,
     @Override
     public final boolean isPresent(Duration timeout) {
         try {
-            get(0, timeout).withWrappedElement().accept(e -> { });
+            get(0, timeout).withWrappedElement().accept(e -> {
+            });
             return true;
         } catch (NoSuchElementException ignore) {
             return false;

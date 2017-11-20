@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium.internal;
+package com.redfin.patient.selenium;
 
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
-public interface FindsElements<W extends WebElement,
+public interface PsDriver<D extends WebDriver,
+        W extends WebElement,
         C extends PsConfig<W, C, B, L, E>,
         B extends PsElementLocatorBuilder<W, C, B, L, E>,
         L extends PsElementLocator<W, C, B, L, E>,
-        E extends PsElement<W, C, B, L, E>> {
+        E extends PsElement<W, C, B, L, E>>
+        extends FindsElements<W, C, B, L, E> {
 
-    B find();
+    CachingExecutor<D> withWrappedDriver();
 }

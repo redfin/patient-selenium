@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium.internal;
+package com.redfin.patient.selenium;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
