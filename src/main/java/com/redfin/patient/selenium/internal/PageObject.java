@@ -14,26 +14,18 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium;
+package com.redfin.patient.selenium.internal;
 
-import java.util.function.Consumer;
-import java.util.function.Function;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 
-import static com.redfin.validity.Validity.validate;
+public interface PageObject<D extends WebDriver,
+        W extends WebElement,
+        P extends PsDriver<D, W, C, B, L, E>,
+        C extends PsConfig<W, C, B, L, E>,
+        B extends PsElementLocatorBuilder<W, C, B, L, E>,
+        L extends PsElementLocator<W, C, B, L, E>,
+        E extends PsElement<W, C, B, L, E>> {
 
-public interface CachingExecutor<T> {
-
-    default void accept(Consumer<T> consumer) {
-        validate().withMessage("Cannot execute with a null consumer.")
-                  .that(consumer)
-                  .isNotNull();
-        apply(t -> {
-            consumer.accept(t);
-            return null;
-        });
-    }
-
-    <R> R apply(Function<T, R> function);
-
-    void clearCache();
+    P getDriver();
 }

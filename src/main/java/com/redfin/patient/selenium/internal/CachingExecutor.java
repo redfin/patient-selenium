@@ -14,24 +14,26 @@
  * limitations under the License.
  */
 
-package com.redfin.patient.selenium.apps;
+package com.redfin.patient.selenium.internal;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.PARAMETER})
-public @interface NativeMobileFindBy {
+import static com.redfin.validity.Validity.validate;
 
-    String id() default "";
+public interface CachingExecutor<T> {
 
-    String accessibility() default "";
+    default void accept(Consumer<T> consumer) {
+        validate().withMessage("Cannot execute with a null consumer.")
+                  .that(consumer)
+                  .isNotNull();
+        apply(t -> {
+            consumer.accept(t);
+            return null;
+        });
+    }
 
-    String xpath() default "";
+    <R> R apply(Function<T, R> function);
 
-    int tryingForSeconds() default 30;
+    void clearCache();
 }

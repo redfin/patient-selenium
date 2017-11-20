@@ -16,7 +16,6 @@
 
 package com.redfin.patient.selenium.internal;
 
-import com.redfin.patient.selenium.PsElementLocatorBuilder;
 import com.redfin.patient.selenium.Testable;
 
 public interface PsElementLocatorBuilderTestContract<T extends PsElementLocatorBuilder>

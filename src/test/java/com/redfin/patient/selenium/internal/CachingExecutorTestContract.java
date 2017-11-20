@@ -16,7 +16,6 @@
 
 package com.redfin.patient.selenium.internal;
 
-import com.redfin.patient.selenium.CachingExecutor;
 import com.redfin.patient.selenium.Testable;
 
 public interface CachingExecutorTestContract<T extends CachingExecutor>

@@ -16,12 +16,6 @@
 
 package com.redfin.patient.selenium.internal;
 
-import com.redfin.patient.selenium.CachingExecutor;
-import com.redfin.patient.selenium.PsConfig;
-import com.redfin.patient.selenium.PsDriver;
-import com.redfin.patient.selenium.PsElement;
-import com.redfin.patient.selenium.PsElementLocator;
-import com.redfin.patient.selenium.PsElementLocatorBuilder;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
@@ -47,8 +41,7 @@ public abstract class AbstractPsDriver<D extends WebDriver,
                                         .isNotNull();
     }
 
-    protected abstract B createElementLocatorBuilder(String elementLocatorBuilderDescription,
-                                                     C config);
+    protected abstract B createElementLocatorBuilder(String elementLocatorBuilderDescription);
 
     @Override
     public final CachingExecutor<D> withWrappedDriver() {
@@ -58,8 +51,7 @@ public abstract class AbstractPsDriver<D extends WebDriver,
     @Override
     public final B find() {
         return createElementLocatorBuilder(String.format("%s.find()",
-                                                         getDescription()),
-                                           getConfig());
+                                                         getDescription()));
     }
 
     public void quit() {

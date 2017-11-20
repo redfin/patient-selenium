@@ -16,11 +16,6 @@
 
 package com.redfin.patient.selenium.internal;
 
-import com.redfin.patient.selenium.CachingExecutor;
-import com.redfin.patient.selenium.PsConfig;
-import com.redfin.patient.selenium.PsElement;
-import com.redfin.patient.selenium.PsElementLocator;
-import com.redfin.patient.selenium.PsElementLocatorBuilder;
 import org.openqa.selenium.WebElement;
 
 import static com.redfin.validity.Validity.validate;
@@ -44,8 +39,7 @@ public abstract class AbstractPsElement<W extends WebElement,
                                          .isNotNull();
     }
 
-    protected abstract B createElementLocatorBuilder(String elementLocatorBuilderDescription,
-                                                     C config);
+    protected abstract B createElementLocatorBuilder(String elementLocatorBuilderDescription);
 
     @Override
     public final CachingExecutor<W> withWrappedElement() {
@@ -55,7 +49,6 @@ public abstract class AbstractPsElement<W extends WebElement,
     @Override
     public final B find() {
         return createElementLocatorBuilder(String.format("%s.find()",
-                                                         getDescription()),
-                                           getConfig());
+                                                         getDescription()));
     }
 }

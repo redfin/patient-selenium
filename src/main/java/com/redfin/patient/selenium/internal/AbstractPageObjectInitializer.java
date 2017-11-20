@@ -16,14 +16,6 @@
 
 package com.redfin.patient.selenium.internal;
 
-import com.redfin.patient.selenium.FindsElements;
-import com.redfin.patient.selenium.PageObject;
-import com.redfin.patient.selenium.PageObjectInitializer;
-import com.redfin.patient.selenium.PsConfig;
-import com.redfin.patient.selenium.PsDriver;
-import com.redfin.patient.selenium.PsElement;
-import com.redfin.patient.selenium.PsElementLocator;
-import com.redfin.patient.selenium.PsElementLocatorBuilder;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 

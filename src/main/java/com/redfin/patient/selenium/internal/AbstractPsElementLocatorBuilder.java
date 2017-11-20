@@ -17,10 +17,6 @@
 package com.redfin.patient.selenium.internal;
 
 import com.redfin.patience.PatientWait;
-import com.redfin.patient.selenium.PsConfig;
-import com.redfin.patient.selenium.PsElement;
-import com.redfin.patient.selenium.PsElementLocator;
-import com.redfin.patient.selenium.PsElementLocatorBuilder;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
