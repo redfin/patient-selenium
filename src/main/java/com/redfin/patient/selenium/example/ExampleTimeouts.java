@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.PARAMETER})
-public @interface ExampleFindDuration {
+public @interface ExampleTimeouts {
 
     int tryingForSeconds() default 30;
 }

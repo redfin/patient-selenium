@@ -32,11 +32,19 @@ public abstract class AbstractPageObject<THIS extends AbstractPageObject<THIS, D
         implements PageObject<D, W, P, C, B, L, E> {
 
     private final P driver = null;
+    private final FindsElements<W, C, B, L, E> pageContext = null;
 
     @Override
     public final P getDriver() {
         return expect().withMessage("This page object has not been initialized by a page object initializer.")
                        .that(driver)
+                       .isNotNull();
+    }
+
+    @Override
+    public final FindsElements<W, C, B, L, E> getPageContext() {
+        return expect().withMessage("This page object has not been initialized by a page object initializer.")
+                       .that(pageContext)
                        .isNotNull();
     }
 

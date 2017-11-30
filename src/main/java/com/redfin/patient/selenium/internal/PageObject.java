@@ -28,4 +28,6 @@ public interface PageObject<D extends WebDriver,
         E extends PsElement<W, C, B, L, E>> {
 
     P getDriver();
+
+    FindsElements<W, C, B, L, E> getPageContext();
 }

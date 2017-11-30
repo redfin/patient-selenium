@@ -10,8 +10,8 @@ import org.openqa.selenium.support.pagefactory.ByChained;
 import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import static com.redfin.validity.Validity.expect;
 import static com.redfin.validity.Validity.validate;
@@ -30,22 +30,43 @@ public final class ExamplePageObjectInitializer
     }
 
     @Override
-    protected Optional<ExamplePsElementLocator> buildElementLocatorOptional(FindsElements<WebElement,
+    public ExamplePsElementLocator buildElementLocator(FindsElements<WebElement,
             ExamplePsConfig,
             ExamplePsElementLocatorBuilder,
             ExamplePsElementLocator,
             ExamplePsElement> currentContext,
-                                                                            Field field) {
+                                                       List<Field> parentFields,
+                                                       Field elementLocatorField) {
         validate().withMessage("Cannot use a null search context.")
                   .that(currentContext)
                   .isNotNull();
-        validate().withMessage("Cannot use a null field.")
-                  .that(field)
+        validate().withMessage("Cannot use a null parent field list.")
+                  .that(parentFields)
                   .isNotNull();
-        ExampleFindBy[] finds = field.getAnnotationsByType(ExampleFindBy.class);
-        if (null == finds || finds.length == 0) {
-            return Optional.empty();
+        validate().withMessage("Cannot use a null element locator field.")
+                  .that(elementLocatorField)
+                  .isNotNull();
+        List<Field> fields = new ArrayList<>(parentFields);
+        fields.add(elementLocatorField);
+        By by = buildBy(fields);
+        Duration timeout = buildTimeout(fields);
+        if (null != timeout) {
+            return currentContext.find()
+                                 .withTimeout(timeout)
+                                 .by(by);
+        } else {
+            return currentContext.find()
+                                 .by(by);
         }
+    }
+
+    private By buildBy(List<Field> fields) {
+        ExampleFindBy[] finds = fields.stream()
+                                      .flatMap(field -> Arrays.stream(field.getAnnotationsByType(ExampleFindBy.class)))
+                                      .toArray(ExampleFindBy[]::new);
+        expect().withMessage("Unable to create an element locator without any ExampleFindBy annotations.")
+                .that(finds)
+                .isNotEmpty();
         List<By> bys = new ArrayList<>();
         for (ExampleFindBy find : finds) {
             int counter = 0;
@@ -61,22 +82,23 @@ public final class ExamplePageObjectInitializer
                 bys.add(By.xpath(find.xpath()));
                 counter++;
             }
-            expect().withMessage("Should have exactly 1 locator strategy defined by a ExampleFindBy annotation.")
+            expect().withMessage("Should have exactly 1 locator strategy defined by any one ExampleFindBy annotation.")
                     .that(counter)
                     .isEqualTo(1);
         }
-        ByChained by = new ByChained(bys.toArray(new By[bys.size()]));
-        Duration timeout = null;
-        ExampleFindDuration durationAnnotation = field.getAnnotation(ExampleFindDuration.class);
+        return new ByChained(bys.toArray(new By[bys.size()]));
+    }
+
+    private Duration buildTimeout(List<Field> fields) {
+        Field field = fields.get(fields.size() - 1);
+        ExampleTimeouts durationAnnotation = field.getAnnotation(ExampleTimeouts.class);
         if (null != durationAnnotation) {
-            timeout = Duration.ofSeconds(durationAnnotation.tryingForSeconds());
-        }
-        if (null != timeout) {
-            return Optional.of(currentContext.find()
-                                             .withTimeout(timeout)
-                                             .by(by));
+            expect().withMessage("Cannot have an ExampleTimeouts annotation with a negative tryingForSeconds")
+                    .that(durationAnnotation.tryingForSeconds())
+                    .isAtLeast(0);
+            return Duration.ofSeconds(durationAnnotation.tryingForSeconds());
         } else {
-            return Optional.empty();
+            return null;
         }
     }
 }

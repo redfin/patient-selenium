@@ -21,9 +21,10 @@ import org.openqa.selenium.WebElement;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
+import static com.redfin.validity.Validity.expect;
 import static com.redfin.validity.Validity.validate;
 
 public abstract class AbstractPageObjectInitializer<D extends WebDriver,
@@ -33,7 +34,8 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
         B extends PsElementLocatorBuilder<W, C, B, L, E>,
         L extends PsElementLocator<W, C, B, L, E>,
         E extends PsElement<W, C, B, L, E>>
-        implements PageObjectInitializer<D, W, P, C, B, L, E> {
+        implements PageObjectInitializer<D, W, P, C, B, L, E>,
+                   PageObjectLocatorFunction<W, C, B, L, E> {
 
     private final P driver;
 
@@ -47,19 +49,16 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
         return driver;
     }
 
-    protected abstract Optional<L> buildElementLocatorOptional(FindsElements<W, C, B, L, E> currentContext,
-                                                               Field field);
-
     @Override
     public final <T extends PageObject<D, W, P, C, B, L, E>> void initialize(T page) {
         initialize(driver, page);
     }
 
     @Override
-    public final <T extends PageObject<D, W, P, C, B, L, E>> void initialize(FindsElements<W, C, B, L, E> searchContext,
+    public final <T extends PageObject<D, W, P, C, B, L, E>> void initialize(FindsElements<W, C, B, L, E> pageContext,
                                                                              T page) {
-        validate().withMessage("Cannot use a null search context.")
-                  .that(searchContext)
+        validate().withMessage("Cannot use a null page context.")
+                  .that(pageContext)
                   .isNotNull();
         validate().withMessage("Cannot use a null page.")
                   .that(page)
@@ -69,22 +68,27 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
         // we need to keep track of which objects have been visited by the initializer.
         List<Object> initializedObjects = new ArrayList<>();
         initializeHelper(driver,
-                         searchContext,
+                         pageContext,
                          page,
+                         Collections.emptyList(),
                          initializedObjects);
     }
 
     private void initializeHelper(P driver,
-                                  FindsElements<W, C, B, L, E> searchContext,
+                                  FindsElements<W, C, B, L, E> pageContext,
                                   Object page,
+                                  List<Field> parentFields,
                                   List<Object> visitedObjects) {
         validate().withMessage("Cannot use a null driver.")
                   .that(driver)
                   .isNotNull();
-        validate().withMessage("Cannot use a null search context.")
-                  .that(searchContext)
+        validate().withMessage("Cannot use a null page search context.")
+                  .that(pageContext)
                   .isNotNull();
         validate().withMessage("Cannot use a null page.")
+                  .that(page)
+                  .isNotNull();
+        validate().withMessage("Cannot use a null parent fields list.")
                   .that(page)
                   .isNotNull();
         validate().withMessage("Cannot use a null visited objects list.")
@@ -110,16 +114,12 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
                             if (null != nextPage) {
                                 // Non-null page object field, initialize it as well starting with figuring out
                                 // the page search context
-                                Optional<L> optPageLocator = buildElementLocatorOptional(searchContext, field);
-                                FindsElements<W, C, B, L, E> newPageSearchContext;
-                                if (optPageLocator.isPresent()) {
-                                    newPageSearchContext = optPageLocator.get().get();
-                                } else {
-                                    newPageSearchContext = searchContext;
-                                }
+                                List<Field> newParentFields = new ArrayList<>(parentFields);
+                                newParentFields.add(field);
                                 initializeHelper(driver,
-                                                 newPageSearchContext,
+                                                 pageContext,
                                                  nextPage,
+                                                 Collections.unmodifiableList(newParentFields),
                                                  visitedObjects);
                             }
                         } else if (PsElementLocator.class.isAssignableFrom(field.getType())) {
@@ -128,10 +128,13 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
                             Object elementLocator = field.get(page);
                             if (null == elementLocator) {
                                 // Null element locator field, initialize it
-                                Optional<L> optElementLocator = buildElementLocatorOptional(searchContext, field);
-                                if (optElementLocator.isPresent()) {
-                                    field.set(page, optElementLocator.get());
-                                }
+                                L builtLocator = buildElementLocator(pageContext,
+                                                                     parentFields,
+                                                                     field);
+                                field.set(page,
+                                          expect().withMessage("Received a null element locator from the page object locator function.")
+                                                  .that(builtLocator)
+                                                  .isNotNull());
                             }
                         }
                     }
@@ -141,6 +144,10 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
                         Field field = AbstractPageObject.class.getDeclaredField("driver");
                         field.setAccessible(true);
                         field.set(page, driver);
+                        // initialize the page search context field
+                        field = AbstractPageObject.class.getDeclaredField("pageContext");
+                        field.setAccessible(true);
+                        field.set(page, pageContext);
                     }
                 } catch (NoSuchFieldException | IllegalAccessException exception) {
                     throw new RuntimeException("Error initializing the page object.", exception);

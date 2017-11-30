@@ -34,13 +34,11 @@ public final class DefaultElementCachingExecutor<W extends WebElement>
 
     private W cachedElement;
 
-    public DefaultElementCachingExecutor(Supplier<W> elementSupplier) {
-        this(null, elementSupplier);
-    }
-
     public DefaultElementCachingExecutor(W initialElement,
                                          Supplier<W> elementSupplier) {
-        this.cachedElement = initialElement;
+        this.cachedElement = validate().withMessage("Cannot create an element executor with a null initial element.")
+                                       .that(initialElement)
+                                       .isNotNull();
         this.elementSupplier = validate().withMessage("Cannot create an element executor with a null element supplier.")
                                          .that(elementSupplier)
                                          .isNotNull();

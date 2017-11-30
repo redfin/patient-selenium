@@ -137,7 +137,9 @@ public abstract class AbstractPsElementLocator<W extends WebElement,
 
     protected final E buildElement(String elementDescription,
                                    Supplier<W> elementSupplier) {
-        return buildElement(elementDescription, null, elementSupplier);
+        return buildElement(elementDescription,
+                            elementSupplier.get(),
+                            elementSupplier);
     }
 
     protected abstract E buildElement(String elementDescription,
