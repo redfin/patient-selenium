@@ -18,6 +18,7 @@ package com.redfin.patient.selenium.internal;
 
 import com.redfin.patience.PatientWait;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.time.Duration;
@@ -28,11 +29,13 @@ import java.util.function.Supplier;
 
 import static com.redfin.validity.Validity.validate;
 
-public abstract class AbstractPsElementLocatorBuilder<W extends WebElement,
-        C extends PsConfig<W, C, THIS, L, E>,
-        THIS extends AbstractPsElementLocatorBuilder<W, C, THIS, L, E>,
-        L extends PsElementLocator<W, C, THIS, L, E>,
-        E extends PsElement<W, C, THIS, L, E>>
+public abstract class AbstractPsElementLocatorBuilder<D extends WebDriver,
+        W extends WebElement,
+        C extends AbstractPsConfig<D, W, C, P, THIS, L, E>,
+        P extends AbstractPsDriver<D, W, C, P, THIS, L, E>,
+        THIS extends AbstractPsElementLocatorBuilder<D, W, C, P, THIS, L, E>,
+        L extends AbstractPsElementLocator<D, W, C, P, THIS, L, E>,
+        E extends AbstractPsElement<D, W, C, P, THIS, L, E>>
         extends AbstractPsBase<W, C, THIS, L, E>
         implements PsElementLocatorBuilder<W, C, THIS, L, E> {
 
@@ -44,10 +47,12 @@ public abstract class AbstractPsElementLocatorBuilder<W extends WebElement,
     private Duration defaultTimeout;
     private Duration defaultAssertNotPresentTimeout;
     private Predicate<W> elementFilter;
+    private P driver;
 
     public AbstractPsElementLocatorBuilder(String description,
                                            C config,
-                                           Function<By, List<W>> baseSeleniumLocatorFunction) {
+                                           Function<By, List<W>> baseSeleniumLocatorFunction,
+                                           P driver) {
         super(description, config);
         this.baseSeleniumLocatorFunction = validate().withMessage("Cannot use a null base selenium locator function.")
                                                      .that(baseSeleniumLocatorFunction)
@@ -56,6 +61,9 @@ public abstract class AbstractPsElementLocatorBuilder<W extends WebElement,
         this.defaultTimeout = config.getDefaultTimeout();
         this.defaultAssertNotPresentTimeout = config.getDefaultAssertNotPresentTimeout();
         this.elementFilter = config.getDefaultElementFilter();
+        this.driver = validate().withMessage("Cannot use a null driver.")
+                                .that(driver)
+                                .isNotNull();
     }
 
     protected final Function<By, List<W>> getBaseSeleniumLocatorFunction() {
@@ -76,6 +84,10 @@ public abstract class AbstractPsElementLocatorBuilder<W extends WebElement,
 
     protected final Predicate<W> getElementFilter() {
         return elementFilter;
+    }
+
+    protected final P getDriver() {
+        return driver;
     }
 
     protected abstract THIS getThis();

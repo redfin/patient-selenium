@@ -9,6 +9,7 @@ public final class ExamplePsDriver
         extends AbstractPsDriver<WebDriver,
         WebElement,
         ExamplePsConfig,
+        ExamplePsDriver,
         ExamplePsElementLocatorBuilder,
         ExamplePsElementLocator,
         ExamplePsElement> {
@@ -23,7 +24,8 @@ public final class ExamplePsDriver
     protected ExamplePsElementLocatorBuilder createElementLocatorBuilder(String elementLocatorBuilderDescription) {
         return new ExamplePsElementLocatorBuilder(elementLocatorBuilderDescription,
                                                   getConfig(),
-                                                  by -> withWrappedDriver().apply(d -> d.findElements(by)));
+                                                  by -> withWrappedDriver().apply(d -> d.findElements(by)),
+                                                  this);
     }
 
     // Add in the API methods desired for the element

@@ -18,6 +18,7 @@ package com.redfin.patient.selenium.internal;
 
 import com.redfin.patience.PatientWait;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.time.Duration;
@@ -26,11 +27,13 @@ import java.util.function.Predicate;
 
 import static com.redfin.validity.Validity.validate;
 
-public abstract class AbstractPsConfig<W extends WebElement,
-        THIS extends AbstractPsConfig<W, THIS, B, L, E>,
-        B extends PsElementLocatorBuilder<W, THIS, B, L, E>,
-        L extends PsElementLocator<W, THIS, B, L, E>,
-        E extends PsElement<W, THIS, B, L, E>>
+public abstract class AbstractPsConfig<D extends WebDriver,
+        W extends WebElement,
+        THIS extends AbstractPsConfig<D, W, THIS, P, B, L, E>,
+        P extends AbstractPsDriver<D, W, THIS, P, B, L, E>,
+        B extends AbstractPsElementLocatorBuilder<D, W, THIS, P, B, L, E>,
+        L extends AbstractPsElementLocator<D, W, THIS, P, B, L, E>,
+        E extends AbstractPsElement<D, W, THIS, P, B, L, E>>
         implements PsConfig<W, THIS, B, L, E> {
 
     private final PatientWait defaultWait;

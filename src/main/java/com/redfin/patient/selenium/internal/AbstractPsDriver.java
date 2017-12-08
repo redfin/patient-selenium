@@ -19,14 +19,18 @@ package com.redfin.patient.selenium.internal;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
+import java.util.function.Consumer;
+import java.util.function.Function;
+
 import static com.redfin.validity.Validity.validate;
 
 public abstract class AbstractPsDriver<D extends WebDriver,
         W extends WebElement,
-        C extends PsConfig<W, C, B, L, E>,
-        B extends PsElementLocatorBuilder<W, C, B, L, E>,
-        L extends PsElementLocator<W, C, B, L, E>,
-        E extends PsElement<W, C, B, L, E>>
+        C extends AbstractPsConfig<D, W, C, THIS, B, L, E>,
+        THIS extends AbstractPsDriver<D, W, C, THIS, B, L, E>,
+        B extends AbstractPsElementLocatorBuilder<D, W, C, THIS, B, L, E>,
+        L extends AbstractPsElementLocator<D, W, C, THIS, B, L, E>,
+        E extends AbstractPsElement<D, W, C, THIS, B, L, E>>
         extends AbstractPsBase<W, C, B, L, E>
         implements PsDriver<D, W, C, B, L, E> {
 
@@ -55,15 +59,29 @@ public abstract class AbstractPsDriver<D extends WebDriver,
     }
 
     public void quit() {
-        withWrappedDriver().accept(WebDriver::quit);
+        accept(WebDriver::quit);
         withWrappedDriver().clearCache();
     }
 
     public void close() {
-        int numHandles = withWrappedDriver().apply(d -> d.getWindowHandles().size());
-        withWrappedDriver().accept(WebDriver::close);
+        int numHandles = apply(d -> d.getWindowHandles().size());
+        accept(WebDriver::close);
         if (numHandles <= 1) {
             withWrappedDriver().clearCache();
         }
+    }
+
+    protected final void accept(Consumer<D> consumer) {
+        validate().withMessage("Cannot execute a null consumer.")
+                  .that(consumer)
+                  .isNotNull();
+        withWrappedDriver().accept(consumer);
+    }
+
+    protected final <R> R apply(Function<D, R> function) {
+        validate().withMessage("Cannot execute a null consumer.")
+                  .that(function)
+                  .isNotNull();
+        return withWrappedDriver().apply(function);
     }
 }

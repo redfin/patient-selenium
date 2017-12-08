@@ -2,6 +2,7 @@ package com.redfin.patient.selenium.example;
 
 import com.redfin.patient.selenium.internal.AbstractPsElementLocatorBuilder;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.util.List;
@@ -9,16 +10,19 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public final class ExamplePsElementLocatorBuilder
-        extends AbstractPsElementLocatorBuilder<WebElement,
+        extends AbstractPsElementLocatorBuilder<WebDriver,
+        WebElement,
         ExamplePsConfig,
+        ExamplePsDriver,
         ExamplePsElementLocatorBuilder,
         ExamplePsElementLocator,
         ExamplePsElement> {
 
     public ExamplePsElementLocatorBuilder(String description,
                                           ExamplePsConfig config,
-                                          Function<By, List<WebElement>> baseSeleniumLocatorFunction) {
-        super(description, config, baseSeleniumLocatorFunction);
+                                          Function<By, List<WebElement>> baseSeleniumLocatorFunction,
+                                          ExamplePsDriver driver) {
+        super(description, config, baseSeleniumLocatorFunction, driver);
     }
 
     @Override
@@ -35,6 +39,7 @@ public final class ExamplePsElementLocatorBuilder
                                            getDefaultTimeout(),
                                            getDefaultAssertNotPresentTimeout(),
                                            elementSupplier,
-                                           getElementFilter());
+                                           getElementFilter(),
+                                           getDriver());
     }
 }

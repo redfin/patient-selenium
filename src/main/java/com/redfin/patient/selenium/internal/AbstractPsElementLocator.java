@@ -19,6 +19,7 @@ package com.redfin.patient.selenium.internal;
 import com.redfin.patience.PatientTimeoutException;
 import com.redfin.patience.PatientWait;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.time.Duration;
@@ -33,11 +34,13 @@ import java.util.stream.Collectors;
 import static com.redfin.validity.Validity.expect;
 import static com.redfin.validity.Validity.validate;
 
-public abstract class AbstractPsElementLocator<W extends WebElement,
-        C extends PsConfig<W, C, B, THIS, E>,
-        B extends PsElementLocatorBuilder<W, C, B, THIS, E>,
-        THIS extends AbstractPsElementLocator<W, C, B, THIS, E>,
-        E extends PsElement<W, C, B, THIS, E>>
+public abstract class AbstractPsElementLocator<D extends WebDriver,
+        W extends WebElement,
+        C extends AbstractPsConfig<D, W, C, P, B, THIS, E>,
+        P extends AbstractPsDriver<D, W, C, P, B, THIS, E>,
+        B extends AbstractPsElementLocatorBuilder<D, W, C, P, B, THIS, E>,
+        THIS extends AbstractPsElementLocator<D, W, C, P, B, THIS, E>,
+        E extends AbstractPsElement<D, W, C, P, B, THIS, E>>
         extends AbstractPsBase<W, C, B, THIS, E>
         implements PsElementLocator<W, C, B, THIS, E> {
 
@@ -48,6 +51,7 @@ public abstract class AbstractPsElementLocator<W extends WebElement,
     private final Duration defaultAssertNotPresentTimeout;
     private final Supplier<List<W>> elementSupplier;
     private final Predicate<W> elementFilter;
+    private final P driver;
 
     public AbstractPsElementLocator(String description,
                                     C config,
@@ -55,7 +59,8 @@ public abstract class AbstractPsElementLocator<W extends WebElement,
                                     Duration defaultTimeout,
                                     Duration defaultAssertNotPresentTimeout,
                                     Supplier<List<W>> elementSupplier,
-                                    Predicate<W> elementFilter) {
+                                    Predicate<W> elementFilter,
+                                    P driver) {
         super(description, config);
         this.wait = validate().withMessage("Cannot use a null wait.")
                               .that(wait)
@@ -72,6 +77,9 @@ public abstract class AbstractPsElementLocator<W extends WebElement,
         this.elementFilter = validate().withMessage("Cannot use a null element filter.")
                                        .that(elementFilter)
                                        .isNotNull();
+        this.driver = validate().withMessage("Cannot use a null driver.")
+                                .that(driver)
+                                .isNotNull();
     }
 
     protected final PatientWait getWait() {
@@ -92,6 +100,10 @@ public abstract class AbstractPsElementLocator<W extends WebElement,
 
     protected final Predicate<W> getElementFilter() {
         return elementFilter;
+    }
+
+    protected final P getDriver() {
+        return driver;
     }
 
     private Supplier<W> createElementSupplier(int index,

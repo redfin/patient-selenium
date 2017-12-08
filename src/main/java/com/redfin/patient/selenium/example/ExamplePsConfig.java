@@ -5,6 +5,7 @@ import com.redfin.patience.PatientRetryHandlers;
 import com.redfin.patience.PatientWait;
 import com.redfin.patient.selenium.internal.AbstractPsConfig;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.time.Duration;
@@ -13,8 +14,10 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public final class ExamplePsConfig
-        extends AbstractPsConfig<WebElement,
+        extends AbstractPsConfig<WebDriver,
+        WebElement,
         ExamplePsConfig,
+        ExamplePsDriver,
         ExamplePsElementLocatorBuilder,
         ExamplePsElementLocator,
         ExamplePsElement> {
