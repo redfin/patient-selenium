@@ -24,9 +24,8 @@ public class PatientWebPageObjectInitializer
         PatientWebElementLocator,
         PatientWebElement> {
 
-    public PatientWebPageObjectInitializer(PatientWebDriver driver,
-                                           Class<PatientWebElementLocator> elementLocatorClass) {
-        super(driver, elementLocatorClass);
+    public PatientWebPageObjectInitializer(PatientWebDriver driver) {
+        super(driver, PatientWebElementLocator.class);
     }
 
     @Override
