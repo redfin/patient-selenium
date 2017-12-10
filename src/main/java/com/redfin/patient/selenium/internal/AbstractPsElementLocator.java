@@ -41,45 +41,53 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
         B extends AbstractPsElementLocatorBuilder<D, W, C, P, B, THIS, E>,
         THIS extends AbstractPsElementLocator<D, W, C, P, B, THIS, E>,
         E extends AbstractPsElement<D, W, C, P, B, THIS, E>>
-        extends AbstractPsBase<W, C, B, THIS, E>
-        implements PsElementLocator<W, C, B, THIS, E> {
+        extends AbstractPsBase<D, W, C, P, B, THIS, E> {
 
-    private static final String FORMAT = "%s.get(%d)";
+    private static final String ELEMENT_FORMAT = "%s.get(%d)";
+    private static final String NOT_FOUND_FORMAT = "No element found matching %s.get(%d) within %s";
 
+    private final P driver;
     private final PatientWait wait;
     private final Duration defaultTimeout;
-    private final Duration defaultAssertNotPresentTimeout;
+    private final Duration defaultNotPresentTimeout;
     private final Supplier<List<W>> elementSupplier;
     private final Predicate<W> elementFilter;
-    private final P driver;
 
     public AbstractPsElementLocator(String description,
                                     C config,
+                                    P driver,
                                     PatientWait wait,
                                     Duration defaultTimeout,
-                                    Duration defaultAssertNotPresentTimeout,
+                                    Duration defaultNotPresentTimeout,
                                     Supplier<List<W>> elementSupplier,
-                                    Predicate<W> elementFilter,
-                                    P driver) {
+                                    Predicate<W> elementFilter) {
         super(description, config);
+        this.driver = validate().withMessage("Cannot use a null driver.")
+                                .that(driver)
+                                .isNotNull();
         this.wait = validate().withMessage("Cannot use a null wait.")
                               .that(wait)
                               .isNotNull();
         this.defaultTimeout = validate().withMessage("Cannot use a null or negative timeout.")
                                         .that(defaultTimeout)
                                         .isNotNull();
-        this.defaultAssertNotPresentTimeout = validate().withMessage("Cannot use a null or negative timeout.")
-                                                        .that(defaultAssertNotPresentTimeout)
-                                                        .isGreaterThanOrEqualToZero();
+        this.defaultNotPresentTimeout = validate().withMessage("Cannot use a null or negative timeout.")
+                                                  .that(defaultNotPresentTimeout)
+                                                  .isGreaterThanOrEqualToZero();
         this.elementSupplier = validate().withMessage("Cannot use a null element supplier.")
                                          .that(elementSupplier)
                                          .isNotNull();
         this.elementFilter = validate().withMessage("Cannot use a null element filter.")
                                        .that(elementFilter)
                                        .isNotNull();
-        this.driver = validate().withMessage("Cannot use a null driver.")
-                                .that(driver)
-                                .isNotNull();
+    }
+
+    protected abstract E buildElement(String description,
+                                      W initialElement,
+                                      Supplier<W> elementSupplier);
+
+    protected final P getDriver() {
+        return driver;
     }
 
     protected final PatientWait getWait() {
@@ -90,8 +98,8 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
         return defaultTimeout;
     }
 
-    protected final Duration getDefaultAssertNotPresentTimeout() {
-        return defaultAssertNotPresentTimeout;
+    protected final Duration getDefaultNotPresentTimeout() {
+        return defaultNotPresentTimeout;
     }
 
     protected final Supplier<List<W>> getElementSupplier() {
@@ -102,210 +110,136 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
         return elementFilter;
     }
 
-    protected final P getDriver() {
-        return driver;
-    }
-
-    private Supplier<W> createElementSupplier(int index,
-                                              Duration timeout) {
-        return () -> {
-            try {
-                // Wait until there are index + 1 matching elements
-                List<W> foundElements = wait.from(() -> expect().withMessage("Received a null selenium element list from the supplier.")
-                                                                .that(elementSupplier.get())
-                                                                .isNotNull()
-                                                                .stream()
-                                                                .filter(elementFilter)
-                                                                .limit(index + 1)
-                                                                .collect(Collectors.toList()))
-                                            .withFilter(list -> null != list && !list.isEmpty() && list.size() > index)
-                                            .get(timeout);
-                return foundElements.get(index);
-            } catch (PatientTimeoutException exception) {
-                // Never found index + 1 matching elements within the timeout, throw exception
-                throw new NoSuchElementException(String.format("Didn't find at least %d element within %s that matched %s",
-                                                               index + 1,
-                                                               timeout,
-                                                               getDescription()));
-            }
-        };
-    }
-
-    private List<W> getAllElements(Duration timeout) {
-        try {
-            return wait.from(() -> expect().withMessage("Received a null selenium element list from the supplier.")
-                                           .that(elementSupplier.get())
-                                           .isNotNull()
-                                           .stream()
-                                           .filter(elementFilter)
-                                           .collect(Collectors.toList()))
-                       .withFilter(list -> null != list && !list.isEmpty())
-                       .get(timeout);
-        } catch (PatientTimeoutException ignore) {
-            // No matching elements found within the timeout, return empty list
-            return Collections.emptyList();
-        }
-    }
-
-    protected final E buildElement(String elementDescription,
-                                   Supplier<W> elementSupplier) {
-        return buildElement(elementDescription,
-                            elementSupplier.get(),
-                            elementSupplier);
-    }
-
-    protected abstract E buildElement(String elementDescription,
-                                      W initialElement,
-                                      Supplier<W> elementSupplier);
-
-    @Override
-    public final boolean isPresent() {
-        return isPresent(defaultTimeout);
-    }
-
-    @Override
-    public final boolean isPresent(Duration timeout) {
-        try {
-            get(0, timeout).withWrappedElement().accept(e -> {
-            });
-            return true;
-        } catch (NoSuchElementException ignore) {
-            return false;
-        }
-    }
-
-    @Override
     public final void ifPresent(Consumer<E> consumer) {
         ifPresent(consumer, defaultTimeout);
     }
 
-    @Override
     public final void ifPresent(Consumer<E> consumer,
                                 Duration timeout) {
-        validate().withMessage("Cannot use a null consumer.")
+        validate().withMessage("Cannot execute with a null consumer.")
                   .that(consumer)
                   .isNotNull();
         validate().withMessage("Cannot use a null or negative timeout.")
                   .that(timeout)
                   .isGreaterThanOrEqualToZero();
         try {
-            E element = get(0, timeout);
-            element.withWrappedElement().accept(e -> {
-            });
-            consumer.accept(element);
+            // Supply the consumer with the found element, if any
+            consumer.accept(get(0, timeout));
         } catch (NoSuchElementException ignore) {
-            // do nothing
+            // Do nothing
         }
     }
 
-    @Override
-    public final boolean isNotPresent() {
-        return isNotPresent(defaultAssertNotPresentTimeout);
+    public final void ifNotPresent(Runnable runnable) {
+        ifNotPresent(runnable, defaultNotPresentTimeout);
     }
 
-    @Override
-    public final boolean isNotPresent(Duration timeout) {
-        try {
-            assertNotPresent(timeout);
-            // No error means the element is not present
-            return true;
-        } catch (AssertionError ignore) {
-            // Assertion thrown means the element is present
-            return false;
-        }
-    }
-
-    @Override
-    public final void assertNotPresent() {
-        assertNotPresent(defaultAssertNotPresentTimeout, null);
-    }
-
-    @Override
-    public final void assertNotPresent(String failureMessage) {
-        assertNotPresent(defaultAssertNotPresentTimeout, failureMessage);
-    }
-
-    @Override
-    public final void assertNotPresent(Duration timeout) {
-        assertNotPresent(timeout, null);
-    }
-
-    @Override
-    public final void assertNotPresent(Duration timeout,
-                                       String failureMessage) {
+    public final void ifNotPresent(Runnable runnable,
+                                   Duration timeout) {
+        validate().withMessage("Cannot execute with a null runnable.")
+                  .that(runnable)
+                  .isNotNull();
         validate().withMessage("Cannot use a null or negative timeout.")
                   .that(timeout)
                   .isGreaterThanOrEqualToZero();
         try {
-            // Wait until no elements match
-            wait.from(() -> expect().withMessage("Received a null selenium element list from the supplier.")
+            wait.from(() -> expect().withMessage("Received a null list from the element supplier.")
                                     .that(elementSupplier.get())
                                     .isNotNull()
                                     .stream()
                                     .noneMatch(elementFilter))
                 .get(timeout);
+            // An empty list was found, run the runnable
+            runnable.run();
         } catch (PatientTimeoutException ignore) {
-            // Timeout reached without getting an empty list
-            if (null == failureMessage || failureMessage.isEmpty()) {
-                throw new AssertionError(String.format("Expected to not find an element matching %s after waiting %s",
-                                                       this,
-                                                       timeout));
-            } else {
-                throw new AssertionError(failureMessage);
-            }
+            // Do nothing
         }
     }
 
-    @Override
     public final E get() {
         return get(0, defaultTimeout);
     }
 
-    @Override
     public final E get(Duration timeout) {
         return get(0, timeout);
     }
 
-    @Override
     public final E get(int index) {
         return get(index, defaultTimeout);
     }
 
-    @Override
     public final E get(int index,
                        Duration timeout) {
-        validate().withMessage("Cannot get an element with a negative index.")
+        validate().withMessage("Cannot locate an element with a negative index.")
                   .that(index)
                   .isAtLeast(0);
-        validate().withMessage("Cannot get an element with a null or negative timeout.")
+        validate().withMessage("Cannot locate an element with a null or negative timeout.")
                   .that(timeout)
                   .isGreaterThanOrEqualToZero();
         Supplier<W> elementSupplier = createElementSupplier(index, timeout);
-        return buildElement(String.format(FORMAT,
-                                          getDescription(),
+        return buildElement(String.format(ELEMENT_FORMAT,
+                                          this,
                                           index),
+                            elementSupplier.get(),
                             elementSupplier);
     }
 
-    @Override
     public final List<E> getAll() {
         return getAll(defaultTimeout);
     }
 
-    @Override
     public final List<E> getAll(Duration timeout) {
-        validate().withMessage("Cannot get elements with a null or negative timeout.")
+        validate().withMessage("Cannot locate elements with a null or negative timeout.")
                   .that(timeout)
                   .isGreaterThanOrEqualToZero();
-        List<W> foundElements = getAllElements(timeout);
-        List<E> elements = new ArrayList<>(foundElements.size());
-        for (int i = 0; i < foundElements.size(); i++) {
-            elements.add(buildElement(String.format(FORMAT,
-                                                    getDescription(),
-                                                    i),
-                                      foundElements.get(i),
-                                      createElementSupplier(i, timeout)));
+        try {
+            List<W> elements = wait.from(() -> expect().withMessage("Received a null list from the element supplier.")
+                                                       .that(elementSupplier.get())
+                                                       .isNotNull()
+                                                       .stream()
+                                                       .filter(elementFilter)
+                                                       .collect(Collectors.toList()))
+                                   .withFilter(list -> null != list && !list.isEmpty())
+                                   .get(timeout);
+            List<E> builtElements = new ArrayList<>(elements.size());
+            for (int i = 0; i < elements.size(); i++) {
+                builtElements.add(buildElement(String.format(ELEMENT_FORMAT,
+                                                             this,
+                                                             i),
+                                               elements.get(i),
+                                               createElementSupplier(i, timeout)));
+            }
+            return builtElements;
+        } catch (PatientTimeoutException ignore) {
+            return Collections.emptyList();
         }
-        return elements;
+    }
+
+    private Supplier<W> createElementSupplier(int index,
+                                              Duration timeout) {
+        return () -> {
+            try {
+                return wait.from(() -> {
+                    List<W> list = expect().withMessage("Received a null list from the element supplier.")
+                                           .that(elementSupplier.get())
+                                           .isNotNull()
+                                           .stream()
+                                           .filter(elementFilter)
+                                           .limit(index + 1)
+                                           .collect(Collectors.toList());
+                    if (list.size() >= index + 1) {
+                        return list.get(index);
+                    } else {
+                        return null;
+                    }
+                }).get(timeout);
+            } catch (PatientTimeoutException ignore) {
+                throw getConfig().getElementNotFoundExceptionBuilderFunction()
+                                 .apply(String.format(NOT_FOUND_FORMAT,
+                                                      this,
+                                                      index,
+                                                      timeout));
+            }
+        };
     }
 }

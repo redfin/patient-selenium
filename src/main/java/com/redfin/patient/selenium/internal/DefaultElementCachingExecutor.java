@@ -28,7 +28,7 @@ import static com.redfin.validity.Validity.validate;
 public final class DefaultElementCachingExecutor<W extends WebElement>
         implements CachingExecutor<W> {
 
-    private static final int MAX_RETRIES = 3;
+    private static final int MAX_STALE_RETRIES = 3;
 
     private final Supplier<W> elementSupplier;
 
@@ -59,7 +59,7 @@ public final class DefaultElementCachingExecutor<W extends WebElement>
                   .that(function)
                   .isNotNull();
         RuntimeException exception = null;
-        for (int i = 0; i < MAX_RETRIES; i++) {
+        for (int i = 0; i < MAX_STALE_RETRIES; i++) {
             try {
                 W element = getElement();
                 return function.apply(element);

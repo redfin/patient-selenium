@@ -1,4 +1,4 @@
-package com.redfin.patient.selenium.example;
+package com.redfin.patient.selenium;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -8,14 +8,24 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Documented
-@Repeatable(ExampleFindBys.class)
+@Repeatable(Finds.class)
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.PARAMETER})
-public @interface ExampleFindBy {
+@Target({ElementType.FIELD})
+public @interface Find {
 
     String id() default "";
+
+    String className() default "";
+
+    String name() default "";
+
+    String tagName() default "";
 
     String css() default "";
 
     String xpath() default "";
+
+    String linkText() default "";
+
+    String partialLinkText() default "";
 }

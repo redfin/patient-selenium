@@ -33,25 +33,17 @@ public abstract class AbstractPsConfig<D extends WebDriver,
         P extends AbstractPsDriver<D, W, THIS, P, B, L, E>,
         B extends AbstractPsElementLocatorBuilder<D, W, THIS, P, B, L, E>,
         L extends AbstractPsElementLocator<D, W, THIS, P, B, L, E>,
-        E extends AbstractPsElement<D, W, THIS, P, B, L, E>>
-        implements PsConfig<W, THIS, B, L, E> {
+        E extends AbstractPsElement<D, W, THIS, P, B, L, E>> {
 
     private final PatientWait defaultWait;
     private final Duration defaultTimeout;
-    private final Duration defaultAssertNotPresentTimeout;
+    private final Duration defaultNotPresentTimeout;
     private final Predicate<W> defaultElementFilter;
     private final Function<String, NoSuchElementException> elementNotFoundExceptionBuilderFunction;
 
     public AbstractPsConfig(PatientWait defaultWait,
                             Duration defaultTimeout,
-                            Predicate<W> defaultElementFilter,
-                            Function<String, NoSuchElementException> elementNotFoundExceptionBuilderFunction) {
-        this(defaultWait, defaultTimeout, defaultTimeout, defaultElementFilter, elementNotFoundExceptionBuilderFunction);
-    }
-
-    public AbstractPsConfig(PatientWait defaultWait,
-                            Duration defaultTimeout,
-                            Duration defaultAssertNotPresentTimeout,
+                            Duration defaultNotPresentTimeout,
                             Predicate<W> defaultElementFilter,
                             Function<String, NoSuchElementException> elementNotFoundExceptionBuilderFunction) {
         this.defaultWait = validate().withMessage("Cannot use a null wait.")
@@ -60,9 +52,9 @@ public abstract class AbstractPsConfig<D extends WebDriver,
         this.defaultTimeout = validate().withMessage("Cannot use a null or negative timeout.")
                                         .that(defaultTimeout)
                                         .isGreaterThanOrEqualToZero();
-        this.defaultAssertNotPresentTimeout = validate().withMessage("Cannot use a null or negative timeout.")
-                                                        .that(defaultAssertNotPresentTimeout)
-                                                        .isGreaterThanOrEqualToZero();
+        this.defaultNotPresentTimeout = validate().withMessage("Cannot use a null or negative timeout.")
+                                                  .that(defaultNotPresentTimeout)
+                                                  .isGreaterThanOrEqualToZero();
         this.defaultElementFilter = validate().withMessage("Cannot use a null element filter.")
                                               .that(defaultElementFilter)
                                               .isNotNull();
@@ -71,27 +63,22 @@ public abstract class AbstractPsConfig<D extends WebDriver,
                                                                  .isNotNull();
     }
 
-    @Override
     public final PatientWait getDefaultWait() {
         return defaultWait;
     }
 
-    @Override
     public final Duration getDefaultTimeout() {
         return defaultTimeout;
     }
 
-    @Override
-    public final Duration getDefaultAssertNotPresentTimeout() {
-        return defaultAssertNotPresentTimeout;
+    public final Duration getDefaultNotPresentTimeout() {
+        return defaultNotPresentTimeout;
     }
 
-    @Override
     public final Predicate<W> getDefaultElementFilter() {
         return defaultElementFilter;
     }
 
-    @Override
     public final Function<String, NoSuchElementException> getElementNotFoundExceptionBuilderFunction() {
         return elementNotFoundExceptionBuilderFunction;
     }

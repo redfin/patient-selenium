@@ -36,58 +36,33 @@ public abstract class AbstractPsElementLocatorBuilder<D extends WebDriver,
         THIS extends AbstractPsElementLocatorBuilder<D, W, C, P, THIS, L, E>,
         L extends AbstractPsElementLocator<D, W, C, P, THIS, L, E>,
         E extends AbstractPsElement<D, W, C, P, THIS, L, E>>
-        extends AbstractPsBase<W, C, THIS, L, E>
-        implements PsElementLocatorBuilder<W, C, THIS, L, E> {
+        extends AbstractPsBase<D, W, C, P, THIS, L, E> {
 
     private static final String BY_FORMAT = "%s.by(%s)";
 
+    private final P driver;
     private final Function<By, List<W>> baseSeleniumLocatorFunction;
 
-    private PatientWait defaultWait;
+    private PatientWait wait;
     private Duration defaultTimeout;
-    private Duration defaultAssertNotPresentTimeout;
+    private Duration defaultNotPresentTimeout;
     private Predicate<W> elementFilter;
-    private P driver;
 
     public AbstractPsElementLocatorBuilder(String description,
                                            C config,
-                                           Function<By, List<W>> baseSeleniumLocatorFunction,
-                                           P driver) {
+                                           P driver,
+                                           Function<By, List<W>> baseSeleniumLocatorFunction) {
         super(description, config);
-        this.baseSeleniumLocatorFunction = validate().withMessage("Cannot use a null base selenium locator function.")
-                                                     .that(baseSeleniumLocatorFunction)
-                                                     .isNotNull();
-        this.defaultWait = config.getDefaultWait();
-        this.defaultTimeout = config.getDefaultTimeout();
-        this.defaultAssertNotPresentTimeout = config.getDefaultAssertNotPresentTimeout();
-        this.elementFilter = config.getDefaultElementFilter();
         this.driver = validate().withMessage("Cannot use a null driver.")
                                 .that(driver)
                                 .isNotNull();
-    }
-
-    protected final Function<By, List<W>> getBaseSeleniumLocatorFunction() {
-        return baseSeleniumLocatorFunction;
-    }
-
-    protected final PatientWait getDefaultWait() {
-        return defaultWait;
-    }
-
-    protected final Duration getDefaultTimeout() {
-        return defaultTimeout;
-    }
-
-    protected final Duration getDefaultAssertNotPresentTimeout() {
-        return defaultAssertNotPresentTimeout;
-    }
-
-    protected final Predicate<W> getElementFilter() {
-        return elementFilter;
-    }
-
-    protected final P getDriver() {
-        return driver;
+        this.baseSeleniumLocatorFunction = validate().withMessage("Cannot use a null base selenium locator function.")
+                                                     .that(baseSeleniumLocatorFunction)
+                                                     .isNotNull();
+        this.wait = config.getDefaultWait();
+        this.defaultTimeout = config.getDefaultTimeout();
+        this.defaultNotPresentTimeout = config.getDefaultNotPresentTimeout();
+        this.elementFilter = config.getDefaultElementFilter();
     }
 
     protected abstract THIS getThis();
@@ -95,16 +70,38 @@ public abstract class AbstractPsElementLocatorBuilder<D extends WebDriver,
     protected abstract L build(String description,
                                Supplier<List<W>> elementSupplier);
 
-    @Override
+    protected final P getDriver() {
+        return driver;
+    }
+
+    protected final Function<By, List<W>> getBaseSeleniumLocatorFunction() {
+        return baseSeleniumLocatorFunction;
+    }
+
+    protected final PatientWait getWait() {
+        return wait;
+    }
+
+    protected final Duration getDefaultTimeout() {
+        return defaultTimeout;
+    }
+
+    protected final Duration getDefaultNotPresentTimeout() {
+        return defaultNotPresentTimeout;
+    }
+
+    protected final Predicate<W> getElementFilter() {
+        return elementFilter;
+    }
+
     public final THIS withWait(PatientWait wait) {
         validate().withMessage("Cannot use a null wait.")
                   .that(wait)
                   .isNotNull();
-        this.defaultWait = wait;
+        this.wait = wait;
         return getThis();
     }
 
-    @Override
     public final THIS withTimeout(Duration timeout) {
         validate().withMessage("Cannot use a null or negative timeout.")
                   .that(timeout)
@@ -113,16 +110,14 @@ public abstract class AbstractPsElementLocatorBuilder<D extends WebDriver,
         return getThis();
     }
 
-    @Override
-    public final THIS withAssertNotPresentTimeout(Duration timeout) {
+    public final THIS withNotPresentTimeout(Duration timeout) {
         validate().withMessage("Cannot use a null or negative timeout.")
                   .that(timeout)
                   .isGreaterThanOrEqualToZero();
-        this.defaultAssertNotPresentTimeout = timeout;
+        this.defaultNotPresentTimeout = timeout;
         return getThis();
     }
 
-    @Override
     public final THIS withFilter(Predicate<W> elementFilter) {
         validate().withMessage("Cannot use a null element filter.")
                   .that(elementFilter)
@@ -131,7 +126,6 @@ public abstract class AbstractPsElementLocatorBuilder<D extends WebDriver,
         return getThis();
     }
 
-    @Override
     public final L by(By locator) {
         validate().withMessage("Cannot find elements with a null locator.")
                   .that(locator)

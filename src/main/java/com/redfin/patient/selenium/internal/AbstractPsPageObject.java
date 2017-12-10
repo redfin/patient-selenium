@@ -21,32 +21,33 @@ import org.openqa.selenium.WebElement;
 
 import static com.redfin.validity.Validity.expect;
 
-public abstract class AbstractPageObject<THIS extends AbstractPageObject<THIS, D, W, P, C, B, L, E>,
-        D extends WebDriver,
+public abstract class AbstractPsPageObject<D extends WebDriver,
         W extends WebElement,
-        P extends PsDriver<D, W, C, B, L, E>,
-        C extends PsConfig<W, C, B, L, E>,
-        B extends PsElementLocatorBuilder<W, C, B, L, E>,
-        L extends PsElementLocator<W, C, B, L, E>,
-        E extends PsElement<W, C, B, L, E>>
-        implements PageObject<D, W, P, C, B, L, E> {
+        C extends AbstractPsConfig<D, W, C, P, B, L, E>,
+        P extends AbstractPsDriver<D, W, C, P, B, L, E>,
+        B extends AbstractPsElementLocatorBuilder<D, W, C, P, B, L, E>,
+        L extends AbstractPsElementLocator<D, W, C, P, B, L, E>,
+        E extends AbstractPsElement<D, W, C, P, B, L, E>> {
+
+    private static final Object[] NULL = {null};
 
     private final P driver = null;
-    private final FindsElements<W, C, B, L, E> pageContext = null;
+    private final FindsElements<D, W, C, P, B, L, E> pageContext = null;
 
-    @Override
-    public final P getDriver() {
+    protected final P getDriver() {
         return expect().withMessage("This page object has not been initialized by a page object initializer.")
                        .that(driver)
                        .isNotNull();
     }
 
-    @Override
-    public final FindsElements<W, C, B, L, E> getPageContext() {
+    protected final FindsElements<D, W, C, P, B, L, E> getPageSearchContext() {
         return expect().withMessage("This page object has not been initialized by a page object initializer.")
                        .that(pageContext)
                        .isNotNull();
     }
 
-    protected abstract THIS getThis();
+    @SuppressWarnings("unchecked")
+    protected final L toBeInitialized() {
+        return (L) NULL[0];
+    }
 }
