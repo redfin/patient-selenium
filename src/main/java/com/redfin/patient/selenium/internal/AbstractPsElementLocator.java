@@ -110,43 +110,45 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
         return elementFilter;
     }
 
-    public final boolean ifPresent(Consumer<E> consumer) {
+    public final OptionalExecutor ifPresent(Consumer<E> consumer) {
         return ifPresent(consumer, defaultTimeout);
     }
 
-    public final boolean ifPresent(Consumer<E> consumer,
-                                   Duration timeout) {
+    public final OptionalExecutor ifPresent(Consumer<E> consumer,
+                                            Duration timeout) {
         validate().withMessage("Cannot execute with a null consumer.")
                   .that(consumer)
                   .isNotNull();
         validate().withMessage("Cannot use a null or negative timeout.")
                   .that(timeout)
                   .isGreaterThanOrEqualToZero();
-        boolean result = false;
+        OptionalExecutor optionalExecutor;
         try {
             // Supply the consumer with the found element, if any
             E element = get(0, timeout);
-            result = true;
+            // Element found, execute this consumer and not a subsequent one
+            optionalExecutor = new OptionalExecutor(false);
             consumer.accept(element);
         } catch (NoSuchElementException ignore) {
-            // Do nothing
+            // Element not found, we will want to run the second given code block, if any
+            optionalExecutor = new OptionalExecutor(true);
         }
-        return result;
+        return optionalExecutor;
     }
 
-    public final boolean ifNotPresent(Runnable runnable) {
+    public final OptionalExecutor ifNotPresent(Runnable runnable) {
         return ifNotPresent(runnable, defaultNotPresentTimeout);
     }
 
-    public final boolean ifNotPresent(Runnable runnable,
-                                      Duration timeout) {
+    public final OptionalExecutor ifNotPresent(Runnable runnable,
+                                               Duration timeout) {
         validate().withMessage("Cannot execute with a null runnable.")
                   .that(runnable)
                   .isNotNull();
         validate().withMessage("Cannot use a null or negative timeout.")
                   .that(timeout)
                   .isGreaterThanOrEqualToZero();
-        boolean result = false;
+        OptionalExecutor optionalExecutor;
         try {
             wait.from(() -> expect().withMessage("Received a null list from the element supplier.")
                                     .that(elementSupplier.get())
@@ -154,13 +156,15 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
                                     .stream()
                                     .noneMatch(elementFilter))
                 .get(timeout);
-            // An empty list was found, run the runnable
-            result = true;
+            // An empty list was found, run this runnable and not a subsequent one
+            optionalExecutor = new OptionalExecutor(false);
             runnable.run();
         } catch (PatientTimeoutException ignore) {
-            // Do nothing
+            // Element was still present, we will want to run the second given code block, if any
+            optionalExecutor = new OptionalExecutor(true);
+
         }
-        return result;
+        return optionalExecutor;
     }
 
     public final E get() {
