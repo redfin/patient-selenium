@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import static com.redfin.validity.Validity.validate;
+
 public class ExampleElementLocator
         extends AbstractPsElementLocator<WebDriver,
         WebElement,
@@ -47,5 +49,59 @@ public class ExampleElementLocator
                                   getDriver(),
                                   new DefaultElementCachingExecutor<>(elementSupplier.get(),
                                                                          elementSupplier));
+    }
+
+    public void assertIsPresent() {
+        assertIsPresent(null, getDefaultTimeout());
+    }
+
+    public void assertIsPresent(String message) {
+        assertIsPresent(message, getDefaultTimeout());
+    }
+
+    public void assertIsPresent(Duration timeout) {
+        assertIsPresent(null, timeout);
+    }
+
+    public void assertIsPresent(String message, Duration timeout) {
+        validate().withMessage("Cannot use a null or negative timeout.")
+                  .that(timeout)
+                  .isGreaterThanOrEqualToZero();
+        String finalMessage;
+        if (null == message) {
+            finalMessage = String.format("No element found within %s that matched: %s",
+                                         timeout,
+                                         getDescription());
+        } else {
+            finalMessage = message;
+        }
+        ifPresent(e -> {}, timeout).orElse(() -> { throw new AssertionError(finalMessage); });
+    }
+
+    public void assertIsNotPresent() {
+        assertIsNotPresent(null, getDefaultTimeout());
+    }
+
+    public void assertIsNotPresent(String message) {
+        assertIsNotPresent(message, getDefaultTimeout());
+    }
+
+    public void assertIsNotPresent(Duration timeout) {
+        assertIsNotPresent(null, timeout);
+    }
+
+    public void assertIsNotPresent(String message, Duration timeout) {
+        validate().withMessage("Cannot use a null or negative timeout.")
+                  .that(timeout)
+                  .isGreaterThanOrEqualToZero();
+        String finalMessage;
+        if (null == message) {
+            finalMessage = String.format("Element still found within %s that matched: %s",
+                                         timeout,
+                                         getDescription());
+        } else {
+            finalMessage = message;
+        }
+        ifNotPresent(() -> {}, timeout).orElse(() -> { throw new AssertionError(finalMessage); });
     }
 }
