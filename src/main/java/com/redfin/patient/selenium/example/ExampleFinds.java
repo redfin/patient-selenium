@@ -1,4 +1,4 @@
-package com.redfin.patient.selenium;
+package com.redfin.patient.selenium.example;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})
-public @interface Finds {
+public @interface ExampleFinds {
 
-    Find[] value();
+    ExampleFind[] value();
 }

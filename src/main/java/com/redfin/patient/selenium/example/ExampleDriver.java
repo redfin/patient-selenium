@@ -1,4 +1,4 @@
-package com.redfin.patient.selenium;
+package com.redfin.patient.selenium.example;
 
 import com.redfin.patient.selenium.internal.AbstractPsDriver;
 import com.redfin.patient.selenium.internal.CachingExecutor;
@@ -12,14 +12,14 @@ import org.openqa.selenium.logging.LogEntries;
 import java.net.URL;
 import java.util.Set;
 
-public class PatientWebDriver
+public class ExampleDriver
         extends AbstractPsDriver<WebDriver,
         WebElement,
-        PatientWebConfig,
-        PatientWebDriver,
-        PatientWebElementLocatorBuilder,
-        PatientWebElementLocator,
-        PatientWebElement> {
+        ExampleConfig,
+        ExampleDriver,
+        ExampleElementLocatorBuilder,
+        ExampleElementLocator,
+        ExampleElement> {
 
     private final TargetLocator targetLocator = new TargetLocator();
     private final Navigation navigation = new Navigation();
@@ -27,9 +27,9 @@ public class PatientWebDriver
     private final Window window = new Window();
     private final Logs logs = new Logs();
 
-    public PatientWebDriver(String description,
-                            PatientWebConfig config,
-                            CachingExecutor<WebDriver> driverExecutor) {
+    public ExampleDriver(String description,
+                         ExampleConfig config,
+                         CachingExecutor<WebDriver> driverExecutor) {
         super(description, config, driverExecutor);
     }
 
@@ -42,19 +42,19 @@ public class PatientWebDriver
     }
 
     @Override
-    public PatientWebElementLocatorBuilder find() {
-        return new PatientWebElementLocatorBuilder(String.format("%s.find()",
-                                                                 getDescription()),
-                                                   getConfig(),
-                                                   this,
+    public ExampleElementLocatorBuilder find() {
+        return new ExampleElementLocatorBuilder(String.format("%s.find()",
+                                                              getDescription()),
+                                                getConfig(),
+                                                this,
                                                    by -> withWrappedDriver().apply(d -> d.findElements(by)));
     }
 
-    public PatientWebDriver get(String url) {
+    public ExampleDriver get(String url) {
         return navigate().to(url);
     }
 
-    public PatientWebDriver get(URL url) {
+    public ExampleDriver get(URL url) {
         return navigate().to(url);
     }
 
@@ -94,22 +94,22 @@ public class PatientWebDriver
 
     public class TargetLocator {
 
-        public PatientWebDriver frame(int index) {
+        public ExampleDriver frame(int index) {
             log("%s.switchTo().frame(%d)", index);
             withWrappedDriver().accept(d -> d.switchTo().frame(index));
-            return PatientWebDriver.this;
+            return ExampleDriver.this;
         }
 
-        public PatientWebDriver parentFrame() {
+        public ExampleDriver parentFrame() {
             log("%s.switchTo().parentFrame()");
             withWrappedDriver().accept(d -> d.switchTo().parentFrame());
-            return PatientWebDriver.this;
+            return ExampleDriver.this;
         }
 
-        public PatientWebDriver window(String nameOrHandle) {
+        public ExampleDriver window(String nameOrHandle) {
             log("%s.switchTo().window(%s)", nameOrHandle);
             withWrappedDriver().accept(d -> d.switchTo().window(nameOrHandle));
-            return PatientWebDriver.this;
+            return ExampleDriver.this;
         }
     }
 
@@ -119,34 +119,34 @@ public class PatientWebDriver
 
     public class Navigation {
 
-        public PatientWebDriver back() {
+        public ExampleDriver back() {
             log("%s.navigate().back()");
             withWrappedDriver().accept(d -> d.navigate().back());
-            return PatientWebDriver.this;
+            return ExampleDriver.this;
         }
 
-        public PatientWebDriver forward() {
+        public ExampleDriver forward() {
             log("%s.navigate().forward()");
             withWrappedDriver().accept(d -> d.navigate().forward());
-            return PatientWebDriver.this;
+            return ExampleDriver.this;
         }
 
-        public PatientWebDriver to(String url) {
+        public ExampleDriver to(String url) {
             log("%s.navigate().to(%s)", url);
             withWrappedDriver().accept(d -> d.navigate().to(url));
-            return PatientWebDriver.this;
+            return ExampleDriver.this;
         }
 
-        public PatientWebDriver to(URL url) {
+        public ExampleDriver to(URL url) {
             log("%s.navigate().to(%s)", url);
             withWrappedDriver().accept(d -> d.navigate().to(url));
-            return PatientWebDriver.this;
+            return ExampleDriver.this;
         }
 
-        public PatientWebDriver refresh() {
+        public ExampleDriver refresh() {
             log("%s.navigate().refresh()");
             withWrappedDriver().accept(d -> d.navigate().refresh());
-            return PatientWebDriver.this;
+            return ExampleDriver.this;
         }
     }
 
@@ -156,28 +156,28 @@ public class PatientWebDriver
 
     public class Cookies {
 
-        public PatientWebDriver add(Cookie cookie) {
+        public ExampleDriver add(Cookie cookie) {
             log("%s.cookies().add(%s)", cookie);
             withWrappedDriver().accept(d -> d.manage().addCookie(cookie));
-            return PatientWebDriver.this;
+            return ExampleDriver.this;
         }
 
-        public PatientWebDriver delete(Cookie cookie) {
+        public ExampleDriver delete(Cookie cookie) {
             log("%s.cookies().delete(%s)", cookie);
             withWrappedDriver().accept(d -> d.manage().deleteCookie(cookie));
-            return PatientWebDriver.this;
+            return ExampleDriver.this;
         }
 
-        public PatientWebDriver delete(String name) {
+        public ExampleDriver delete(String name) {
             log("%s.cookies().delete(%s)", name);
             withWrappedDriver().accept(d -> d.manage().deleteCookieNamed(name));
-            return PatientWebDriver.this;
+            return ExampleDriver.this;
         }
 
-        public PatientWebDriver deleteAll() {
+        public ExampleDriver deleteAll() {
             log("%s.cookies().deleteAll()");
             withWrappedDriver().accept(d -> d.manage().deleteAllCookies());
-            return PatientWebDriver.this;
+            return ExampleDriver.this;
         }
 
         public Cookie get(String name) {
@@ -195,16 +195,16 @@ public class PatientWebDriver
 
     public class Window {
 
-        public PatientWebDriver setSize(Dimension targetSize) {
+        public ExampleDriver setSize(Dimension targetSize) {
             log("%s.window().setSize(%s)", targetSize);
             withWrappedDriver().accept(d -> d.manage().window().setSize(targetSize));
-            return PatientWebDriver.this;
+            return ExampleDriver.this;
         }
 
-        public PatientWebDriver setPosition(Point targetPosition) {
+        public ExampleDriver setPosition(Point targetPosition) {
             log("%s.window().setPosition(%s)", targetPosition);
             withWrappedDriver().accept(d -> d.manage().window().setPosition(targetPosition));
-            return PatientWebDriver.this;
+            return ExampleDriver.this;
         }
 
         public Dimension getSize() {
@@ -215,16 +215,16 @@ public class PatientWebDriver
             return withWrappedDriver().apply(d -> d.manage().window().getPosition());
         }
 
-        public PatientWebDriver maximize() {
+        public ExampleDriver maximize() {
             log("%s.window().maximize()");
             withWrappedDriver().accept(d -> d.manage().window().maximize());
-            return PatientWebDriver.this;
+            return ExampleDriver.this;
         }
 
-        public PatientWebDriver fullscreen() {
+        public ExampleDriver fullscreen() {
             log("%s.window().fullscreen()");
             withWrappedDriver().accept(d -> d.manage().window().fullscreen());
-            return PatientWebDriver.this;
+            return ExampleDriver.this;
         }
     }
 

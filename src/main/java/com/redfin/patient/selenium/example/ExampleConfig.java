@@ -1,4 +1,4 @@
-package com.redfin.patient.selenium;
+package com.redfin.patient.selenium.example;
 
 import com.redfin.patience.PatientExecutionHandlers;
 import com.redfin.patience.PatientRetryHandlers;
@@ -17,23 +17,23 @@ import java.util.function.Predicate;
 
 import static com.redfin.validity.Validity.validate;
 
-public class PatientWebConfig
+public class ExampleConfig
         extends AbstractPsConfig<WebDriver,
         WebElement,
-        PatientWebConfig,
-        PatientWebDriver,
-        PatientWebElementLocatorBuilder,
-        PatientWebElementLocator,
-        PatientWebElement> {
+        ExampleConfig,
+        ExampleDriver,
+        ExampleElementLocatorBuilder,
+        ExampleElementLocator,
+        ExampleElement> {
 
     private final Consumer<String> logConsumer;
 
-    public PatientWebConfig(Consumer<String> logConsumer,
-                            PatientWait defaultWait,
-                            Duration defaultTimeout,
-                            Duration defaultNotPresentTimeout,
-                            Predicate<WebElement> defaultElementFilter,
-                            Function<String, NoSuchElementException> elementNotFoundExceptionBuilderFunction) {
+    public ExampleConfig(Consumer<String> logConsumer,
+                         PatientWait defaultWait,
+                         Duration defaultTimeout,
+                         Duration defaultNotPresentTimeout,
+                         Predicate<WebElement> defaultElementFilter,
+                         Function<String, NoSuchElementException> elementNotFoundExceptionBuilderFunction) {
         super(defaultWait,
               defaultTimeout,
               defaultNotPresentTimeout,
@@ -119,13 +119,13 @@ public class PatientWebConfig
             return this;
         }
 
-        public PatientWebConfig build() {
-            return new PatientWebConfig(logConsumer,
-                                        defaultWait,
-                                        defaultTimeout,
-                                        defaultNotPresentTimeout,
-                                        defaultElementFilter,
-                                        elementNotFoundExceptionBuilderFunction);
+        public ExampleConfig build() {
+            return new ExampleConfig(logConsumer,
+                                     defaultWait,
+                                     defaultTimeout,
+                                     defaultNotPresentTimeout,
+                                     defaultElementFilter,
+                                     elementNotFoundExceptionBuilderFunction);
         }
     }
 }

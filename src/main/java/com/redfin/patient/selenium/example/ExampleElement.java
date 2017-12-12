@@ -1,4 +1,4 @@
-package com.redfin.patient.selenium;
+package com.redfin.patient.selenium.example;
 
 import com.redfin.patient.selenium.internal.AbstractPsElement;
 import com.redfin.patient.selenium.internal.CachingExecutor;
@@ -9,21 +9,20 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.util.Arrays;
-import java.util.stream.Collectors;
 
-public class PatientWebElement
+public class ExampleElement
         extends AbstractPsElement<WebDriver,
         WebElement,
-        PatientWebConfig,
-        PatientWebDriver,
-        PatientWebElementLocatorBuilder,
-        PatientWebElementLocator,
-        PatientWebElement> {
+        ExampleConfig,
+        ExampleDriver,
+        ExampleElementLocatorBuilder,
+        ExampleElementLocator,
+        ExampleElement> {
 
-    public PatientWebElement(String description,
-                             PatientWebConfig config,
-                             PatientWebDriver driver,
-                             CachingExecutor<WebElement> elementExecutor) {
+    public ExampleElement(String description,
+                          ExampleConfig config,
+                          ExampleDriver driver,
+                          CachingExecutor<WebElement> elementExecutor) {
         super(description,
               config,
               driver,
@@ -31,15 +30,15 @@ public class PatientWebElement
     }
 
     @Override
-    public PatientWebElementLocatorBuilder find() {
-        return new PatientWebElementLocatorBuilder(String.format("%s.find()",
-                                                                 getDescription()),
-                                                   getConfig(),
-                                                   getDriver(),
+    public ExampleElementLocatorBuilder find() {
+        return new ExampleElementLocatorBuilder(String.format("%s.find()",
+                                                              getDescription()),
+                                                getConfig(),
+                                                getDriver(),
                                                    by -> withWrappedElement().apply(e -> e.findElements(by)));
     }
 
-    public PatientWebElement click() {
+    public ExampleElement click() {
         getConfig().getLogConsumer()
                    .accept(String.format("%s.click()",
                                          this));
@@ -47,7 +46,7 @@ public class PatientWebElement
         return this;
     }
 
-    public PatientWebElement submit() {
+    public ExampleElement submit() {
         getConfig().getLogConsumer()
                    .accept(String.format("%s.submit()",
                                          this));
@@ -55,7 +54,7 @@ public class PatientWebElement
         return this;
     }
 
-    public PatientWebElement sendKeys(CharSequence... keysToSend) {
+    public ExampleElement sendKeys(CharSequence... keysToSend) {
         getConfig().getLogConsumer()
                    .accept(String.format("%s.sendKeys(%s)",
                                          this,
@@ -64,7 +63,7 @@ public class PatientWebElement
         return this;
     }
 
-    public PatientWebElement clear() {
+    public ExampleElement clear() {
         getConfig().getLogConsumer()
                    .accept(String.format("%s.clear()",
                                          this));

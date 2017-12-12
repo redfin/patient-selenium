@@ -1,4 +1,4 @@
-package com.redfin.patient.selenium;
+package com.redfin.patient.selenium.example;
 
 import com.redfin.patient.selenium.internal.AbstractPsPageObjectInitializer;
 import com.redfin.patient.selenium.internal.FindsElements;
@@ -15,28 +15,28 @@ import java.util.Objects;
 import static com.redfin.validity.Validity.expect;
 import static com.redfin.validity.Validity.validate;
 
-public class PatientWebPageObjectInitializer
+public class ExamplePageObjectInitializer
         extends AbstractPsPageObjectInitializer<WebDriver,
         WebElement,
-        PatientWebConfig,
-        PatientWebDriver,
-        PatientWebElementLocatorBuilder,
-        PatientWebElementLocator,
-        PatientWebElement> {
+        ExampleConfig,
+        ExampleDriver,
+        ExampleElementLocatorBuilder,
+        ExampleElementLocator,
+        ExampleElement> {
 
-    public PatientWebPageObjectInitializer(PatientWebDriver driver) {
-        super(driver, PatientWebElementLocator.class);
+    public ExamplePageObjectInitializer(ExampleDriver driver) {
+        super(driver, ExampleElementLocator.class);
     }
 
     @Override
-    protected PatientWebElementLocator buildElementLocator(FindsElements<WebDriver,
+    protected ExampleElementLocator buildElementLocator(FindsElements<WebDriver,
             WebElement,
-            PatientWebConfig,
-            PatientWebDriver,
-            PatientWebElementLocatorBuilder,
-            PatientWebElementLocator,
-            PatientWebElement> searchContext,
-                                                           List<Field> fields) {
+            ExampleConfig,
+            ExampleDriver,
+            ExampleElementLocatorBuilder,
+            ExampleElementLocator,
+            ExampleElement> searchContext,
+                                                        List<Field> fields) {
         validate().withMessage("Cannot use a null search context.")
                   .that(searchContext)
                   .isNotNull();
@@ -44,11 +44,11 @@ public class PatientWebPageObjectInitializer
                   .that(fields)
                   .isNotEmpty();
         By[] bys = fields.stream()
-                         .flatMap(field -> Arrays.stream(field.getAnnotationsByType(Find.class)))
+                         .flatMap(field -> Arrays.stream(field.getAnnotationsByType(ExampleFind.class)))
                          .filter(Objects::nonNull)
                          .map(this::findToBy)
                          .toArray(By[]::new);
-        expect().withMessage("Cannot initialize an element locator that doesn't have any Find annotations.")
+        expect().withMessage("Cannot initialize an element locator that doesn't have any ExampleFind annotations.")
                 .that(bys)
                 .isNotEmpty();
         if (bys.length == 1) {
@@ -58,8 +58,8 @@ public class PatientWebPageObjectInitializer
         }
     }
 
-    private By findToBy(Find find) {
-        validate().withMessage("Cannot use a null Find annotation.")
+    private By findToBy(ExampleFind find) {
+        validate().withMessage("Cannot use a null ExampleFind annotation.")
                   .that(find)
                   .isNotNull();
         int counter = 0;
@@ -96,10 +96,10 @@ public class PatientWebPageObjectInitializer
             counter++;
             by = By.partialLinkText(find.partialLinkText());
         }
-        expect().withMessage("A Find annotation must have exactly 1 locator type selected.")
+        expect().withMessage("A ExampleFind annotation must have exactly 1 locator type selected.")
                 .that(counter)
                 .isEqualTo(1);
-        return expect().withMessage("Error creating a By locator from the Find annotation: " + find)
+        return expect().withMessage("Error creating a By locator from the ExampleFind annotation: " + find)
                        .that(by)
                        .isNotNull();
     }
