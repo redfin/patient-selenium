@@ -44,6 +44,10 @@ public abstract class AbstractPsDriver<D extends WebDriver,
         this.executor = new JavaScriptExecutorImpl<>(driverExecutor);
     }
 
+    protected final void prepareDriver() {
+        driverExecutor.accept(d -> {});
+    }
+
     public final CachingExecutor<D> withWrappedDriver() {
         return driverExecutor;
     }
