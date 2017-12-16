@@ -44,7 +44,7 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
         extends AbstractPsBase<D, W, C, P, B, THIS, E> {
 
     private static final String ELEMENT_FORMAT = "%s.get(%d)";
-    private static final String NOT_FOUND_FORMAT = "No element found matching %s.get(%d) within %s";
+    private static final String NOT_FOUND_FORMAT = "No element found matching %s.get(%d) within %s after %d attempts";
 
     private final P driver;
     private final PatientWait wait;
@@ -102,11 +102,14 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
                     }
                 }).get(timeout);
             } catch (PatientTimeoutException ignore) {
-                throw getConfig().getElementNotFoundExceptionBuilderFunction()
-                                 .apply(String.format(NOT_FOUND_FORMAT,
-                                                      this,
-                                                      index,
-                                                      timeout));
+                NoSuchElementException exception = getConfig().getElementNotFoundExceptionBuilderFunction()
+                                                              .apply(String.format(NOT_FOUND_FORMAT,
+                                                                                   this,
+                                                                                   index,
+                                                                                   timeout,
+                                                                                   ignore.getAttemptsCount()));
+                exception.initCause(ignore);
+                throw exception;
             }
         };
     }
