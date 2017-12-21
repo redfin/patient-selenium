@@ -12,9 +12,9 @@ import static com.redfin.validity.Validity.validate;
 class JavaScriptExecutorImpl<D extends WebDriver>
         implements JavaScriptExecutor {
 
-    private final CachingExecutor<D> driverExecutor;
+    private final Executor<D> driverExecutor;
 
-    public JavaScriptExecutorImpl(CachingExecutor<D> driverExecutor) {
+    public JavaScriptExecutorImpl(Executor<D> driverExecutor) {
         this.driverExecutor = validate().withMessage("Cannot use a null driver executor.")
                                         .that(driverExecutor)
                                         .isNotNull();

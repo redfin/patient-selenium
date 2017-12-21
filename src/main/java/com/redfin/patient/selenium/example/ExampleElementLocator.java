@@ -2,7 +2,7 @@ package com.redfin.patient.selenium.example;
 
 import com.redfin.patience.PatientWait;
 import com.redfin.patient.selenium.internal.AbstractPsElementLocator;
-import com.redfin.patient.selenium.internal.DefaultElementCachingExecutor;
+import com.redfin.patient.selenium.internal.DefaultElementExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
@@ -47,8 +47,8 @@ public class ExampleElementLocator
         return new ExampleElement(description,
                                   getConfig(),
                                   getDriver(),
-                                  new DefaultElementCachingExecutor<>(elementSupplier.get(),
-                                                                         elementSupplier));
+                                  new DefaultElementExecutor<>(elementSupplier.get(),
+                                                               elementSupplier));
     }
 
     public void assertIsPresent() {

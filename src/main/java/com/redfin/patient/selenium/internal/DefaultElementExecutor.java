@@ -25,32 +25,18 @@ import java.util.function.Supplier;
 import static com.redfin.validity.Validity.expect;
 import static com.redfin.validity.Validity.validate;
 
-public final class DefaultElementCachingExecutor<W extends WebElement>
-        implements CachingExecutor<W> {
+public final class DefaultElementExecutor<W extends WebElement>
+           extends AbstractExecutor<W>
+        implements ElementExecutor<W> {
 
     private static final int MAX_STALE_RETRIES = 3;
 
-    private final Supplier<W> elementSupplier;
-
-    private W cachedElement;
-
-    public DefaultElementCachingExecutor(W initialElement,
-                                         Supplier<W> elementSupplier) {
-        this.cachedElement = validate().withMessage("Cannot create an element executor with a null initial element.")
-                                       .that(initialElement)
-                                       .isNotNull();
-        this.elementSupplier = validate().withMessage("Cannot create an element executor with a null element supplier.")
-                                         .that(elementSupplier)
-                                         .isNotNull();
-    }
-
-    private W getElement() {
-        if (null == cachedElement) {
-            cachedElement = expect().withMessage("Received a null element from the element supplier.")
-                                    .that(elementSupplier.get())
-                                    .isNotNull();
-        }
-        return cachedElement;
+    public DefaultElementExecutor(W initialElement,
+                                  Supplier<W> elementSupplier) {
+        super(validate().withMessage("Cannot use a null initial element for a element executor.")
+                        .that(initialElement)
+                        .isNotNull(),
+              elementSupplier);
     }
 
     @Override
@@ -61,12 +47,12 @@ public final class DefaultElementCachingExecutor<W extends WebElement>
         RuntimeException exception = null;
         for (int i = 0; i < MAX_STALE_RETRIES; i++) {
             try {
-                W element = getElement();
+                W element = getCachedObject();
                 return function.apply(element);
             } catch (StaleElementReferenceException stale) {
                 exception = stale;
                 // We need to re-locate the element, clear the cache
-                cachedElement = null;
+                clearCache();
             }
         }
         throw expect().withMessage("Max retries reached but the exception is null.")
@@ -76,6 +62,6 @@ public final class DefaultElementCachingExecutor<W extends WebElement>
 
     @Override
     public void clearCache() {
-        cachedElement = null;
+        object = null;
     }
 }

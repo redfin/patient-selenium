@@ -1,7 +1,7 @@
 package com.redfin.patient.selenium.example;
 
 import com.redfin.patient.selenium.internal.AbstractPsDriver;
-import com.redfin.patient.selenium.internal.CachingExecutor;
+import com.redfin.patient.selenium.internal.DriverExecutor;
 import org.openqa.selenium.Cookie;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.Point;
@@ -29,7 +29,7 @@ public class ExampleDriver
 
     public ExampleDriver(String description,
                          ExampleConfig config,
-                         CachingExecutor<WebDriver> driverExecutor) {
+                         DriverExecutor<WebDriver> driverExecutor) {
         super(description, config, driverExecutor);
     }
 
@@ -80,12 +80,12 @@ public class ExampleDriver
 
     public void close() {
         log("%s.close()");
-        super.close();
+        withWrappedDriver().close();
     }
 
     public void quit() {
         log("%s.quit()");
-        super.quit();
+        withWrappedDriver().quit();
     }
 
     public TargetLocator switchTo() {

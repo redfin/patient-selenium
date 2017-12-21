@@ -31,12 +31,12 @@ public abstract class AbstractPsDriver<D extends WebDriver,
         extends AbstractPsBase<D, W, C, THIS, B, L, E>
         implements FindsElements<D, W, C, THIS, B, L, E> {
 
-    private final CachingExecutor<D> driverExecutor;
+    private final DriverExecutor<D> driverExecutor;
     private final JavaScriptExecutor executor;
 
     protected AbstractPsDriver(String description,
                                C config,
-                               CachingExecutor<D> driverExecutor) {
+                               DriverExecutor<D> driverExecutor) {
         super(description, config);
         this.driverExecutor = validate().withMessage("Cannot use a null driver executor.")
                                         .that(driverExecutor)
@@ -44,25 +44,8 @@ public abstract class AbstractPsDriver<D extends WebDriver,
         this.executor = new JavaScriptExecutorImpl<>(driverExecutor);
     }
 
-    protected final void prepareDriver() {
-        driverExecutor.accept(d -> {});
-    }
-
-    public final CachingExecutor<D> withWrappedDriver() {
+    public final DriverExecutor<D> withWrappedDriver() {
         return driverExecutor;
-    }
-
-    public void quit() {
-        withWrappedDriver().accept(WebDriver::quit);
-        withWrappedDriver().clearCache();
-    }
-
-    public void close() {
-        int numHandles = withWrappedDriver().apply(d -> d.getWindowHandles().size());
-        withWrappedDriver().accept(WebDriver::close);
-        if (numHandles <= 1) {
-            withWrappedDriver().clearCache();
-        }
     }
 
     public JavaScriptExecutor execute() {

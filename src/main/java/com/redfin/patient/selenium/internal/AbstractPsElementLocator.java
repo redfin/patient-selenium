@@ -31,7 +31,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.redfin.validity.Validity.expect;
 import static com.redfin.validity.Validity.validate;
 
 public abstract class AbstractPsElementLocator<D extends WebDriver,
@@ -86,15 +85,21 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
                                       W initialElement,
                                       Supplier<W> elementSupplier);
 
+    private void prepareDriver() {
+        driver.withWrappedDriver().accept(d -> {});
+    }
+
     private Supplier<W> createElementSupplier(int index,
                                               Duration timeout) {
+        prepareDriver();
         return () -> {
             try {
                 return wait.from(() -> {
-                    List<W> list = getSeleniumElements().stream()
-                                                        .filter(elementFilter)
-                                                        .limit(index + 1)
-                                                        .collect(Collectors.toList());
+                    List<W> list = elementSupplier.get()
+                                                  .stream()
+                                                  .filter(elementFilter)
+                                                  .limit(index + 1)
+                                                  .collect(Collectors.toList());
                     if (list.size() >= index + 1) {
                         return list.get(index);
                     } else {
@@ -132,13 +137,6 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
 
     protected final Supplier<List<W>> getElementSupplier() {
         return elementSupplier;
-    }
-
-    protected final List<W> getSeleniumElements() {
-        driver.prepareDriver();
-        return expect().withMessage("Received a null list from the element supplier.")
-                       .that(elementSupplier.get())
-                       .isNotNull();
     }
 
     protected final Predicate<W> getElementFilter() {
@@ -182,9 +180,11 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
                   .that(timeout)
                   .isGreaterThanOrEqualToZero();
         try {
-            List<W> elements = wait.from(() -> getSeleniumElements().stream()
-                                                                    .filter(elementFilter)
-                                                                    .collect(Collectors.toList()))
+            prepareDriver();
+            List<W> elements = wait.from(() -> elementSupplier.get()
+                                                              .stream()
+                                                              .filter(elementFilter)
+                                                              .collect(Collectors.toList()))
                                    .withFilter(list -> null != list && !list.isEmpty())
                                    .get(timeout);
             List<E> builtElements = new ArrayList<>(elements.size());
@@ -241,8 +241,10 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
                   .isGreaterThanOrEqualToZero();
         OptionalExecutor optionalExecutor;
         try {
-            wait.from(() -> getSeleniumElements().stream()
-                                                 .noneMatch(elementFilter))
+            prepareDriver();
+            wait.from(() -> elementSupplier.get()
+                                           .stream()
+                                           .noneMatch(elementFilter))
                 .get(timeout);
             // An empty list was found, run this runnable and not a subsequent one
             optionalExecutor = new OptionalExecutor(false);

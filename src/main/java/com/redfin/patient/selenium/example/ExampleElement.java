@@ -1,7 +1,7 @@
 package com.redfin.patient.selenium.example;
 
 import com.redfin.patient.selenium.internal.AbstractPsElement;
-import com.redfin.patient.selenium.internal.CachingExecutor;
+import com.redfin.patient.selenium.internal.ElementExecutor;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.Rectangle;
@@ -22,7 +22,7 @@ public class ExampleElement
     public ExampleElement(String description,
                           ExampleConfig config,
                           ExampleDriver driver,
-                          CachingExecutor<WebElement> elementExecutor) {
+                          ElementExecutor<WebElement> elementExecutor) {
         super(description,
               config,
               driver,

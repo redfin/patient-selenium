@@ -32,12 +32,12 @@ public abstract class AbstractPsElement<D extends WebDriver,
         implements FindsElements<D, W, C, P, B, L, THIS> {
 
     private final P driver;
-    private final CachingExecutor<W> elementExecutor;
+    private final ElementExecutor<W> elementExecutor;
 
     public AbstractPsElement(String description,
                              C config,
                              P driver,
-                             CachingExecutor<W> elementExecutor) {
+                             ElementExecutor<W> elementExecutor) {
         super(description, config);
         this.driver = validate().withMessage("Cannot use a null driver.")
                                 .that(driver)
@@ -51,7 +51,7 @@ public abstract class AbstractPsElement<D extends WebDriver,
         return driver;
     }
 
-    public final CachingExecutor<W> withWrappedElement() {
+    public final ElementExecutor<W> withWrappedElement() {
         return elementExecutor;
     }
 }
