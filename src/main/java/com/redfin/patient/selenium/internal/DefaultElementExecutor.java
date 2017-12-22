@@ -26,14 +26,14 @@ import static com.redfin.validity.Validity.expect;
 import static com.redfin.validity.Validity.validate;
 
 public final class DefaultElementExecutor<W extends WebElement>
-           extends AbstractExecutor<W>
+           extends AbstractCachingExecutor<W>
         implements ElementExecutor<W> {
 
     private static final int MAX_STALE_RETRIES = 3;
 
     public DefaultElementExecutor(W initialElement,
                                   Supplier<W> elementSupplier) {
-        super(validate().withMessage("Cannot use a null initial element for a element executor.")
+        super(validate().withMessage("Cannot use a null initial element")
                         .that(initialElement)
                         .isNotNull(),
               elementSupplier);
@@ -47,12 +47,12 @@ public final class DefaultElementExecutor<W extends WebElement>
         RuntimeException exception = null;
         for (int i = 0; i < MAX_STALE_RETRIES; i++) {
             try {
-                W element = getCachedObject();
+                W element = getObject();
                 return function.apply(element);
             } catch (StaleElementReferenceException stale) {
                 exception = stale;
                 // We need to re-locate the element, clear the cache
-                clearCache();
+                clearCachedElement();
             }
         }
         throw expect().withMessage("Max retries reached but the exception is null.")
@@ -61,7 +61,7 @@ public final class DefaultElementExecutor<W extends WebElement>
     }
 
     @Override
-    public void clearCache() {
-        object = null;
+    public void clearCachedElement() {
+        setCachedObject(null);
     }
 }

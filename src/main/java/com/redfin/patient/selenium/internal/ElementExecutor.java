@@ -5,5 +5,5 @@ import org.openqa.selenium.WebElement;
 public interface ElementExecutor<W extends WebElement>
          extends Executor<W> {
 
-    void clearCache();
+    void clearCachedElement();
 }

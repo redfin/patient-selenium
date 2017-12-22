@@ -21,35 +21,37 @@ import org.openqa.selenium.WebDriver;
 import java.util.function.Supplier;
 
 public final class DefaultDriverExecutor<D extends WebDriver>
-           extends AbstractExecutor<D>
+           extends AbstractCachingExecutor<D>
         implements DriverExecutor<D> {
 
     public DefaultDriverExecutor(Supplier<D> driverSupplier) {
-        super(driverSupplier);
+        super(null, driverSupplier);
     }
 
     @Override
-    public void quit() {
-        if (null != object) {
+    public void close() {
+        if (!isCachedObjectNull()) {
             try {
-                object.quit();
+                accept(WebDriver::quit);
             } finally {
-                object = null;
+                setCachedObject(null);
             }
         }
     }
 
     @Override
-    public void close() {
-        if (null != object) {
+    public void quit() {
+        if (!isCachedObjectNull()) {
             int numHandles = 0;
             try {
-                numHandles = object.getWindowHandles()
-                                   .size();
-                object.close();
+                numHandles = apply(d -> {
+                    int count = d.getWindowHandles().size();
+                    d.close();
+                    return count;
+                });
             } finally {
                 if (numHandles <= 1) {
-                    object = null;
+                    setCachedObject(null);
                 }
             }
         }

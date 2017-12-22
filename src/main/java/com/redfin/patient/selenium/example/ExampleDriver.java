@@ -80,12 +80,12 @@ public class ExampleDriver
 
     public void close() {
         log("%s.close()");
-        withWrappedDriver().close();
+        super.close();
     }
 
     public void quit() {
         log("%s.quit()");
-        withWrappedDriver().quit();
+        super.quit();
     }
 
     public TargetLocator switchTo() {
