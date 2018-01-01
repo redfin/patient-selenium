@@ -42,8 +42,8 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
         E extends AbstractPsElement<D, W, C, P, B, THIS, E>>
         extends AbstractPsBase<D, W, C, P, B, THIS, E> {
 
-    private static final String ELEMENT_FORMAT = "%s.get(%d)";
-    private static final String NOT_FOUND_FORMAT = "No element found matching %s.get(%d) within %s after %d attempts";
+    private static final String ELEMENT_FORMAT = "%s.get(%s)";
+    private static final String NOT_FOUND_FORMAT = "No element found matching %s.get(%s) within %s after %d attempts";
 
     private final P driver;
     private final PatientWait wait;
@@ -107,10 +107,11 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
                     }
                 }).get(timeout);
             } catch (PatientTimeoutException ignore) {
+                String indexString = index == 0 ? "" : String.valueOf(index);
                 NoSuchElementException exception = getConfig().getElementNotFoundExceptionBuilderFunction()
                                                               .apply(String.format(NOT_FOUND_FORMAT,
                                                                                    this,
-                                                                                   index,
+                                                                                   indexString,
                                                                                    timeout,
                                                                                    ignore.getAttemptsCount()));
                 exception.initCause(ignore);
@@ -164,9 +165,10 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
                   .that(timeout)
                   .isGreaterThanOrEqualToZero();
         Supplier<W> elementSupplier = createElementSupplier(index, timeout);
+        String indexString = index == 0 ? "" : String.valueOf(index);
         return buildElement(String.format(ELEMENT_FORMAT,
                                           this,
-                                          index),
+                                          indexString),
                             elementSupplier.get(),
                             elementSupplier);
     }
@@ -189,9 +191,10 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
                                    .get(timeout);
             List<E> builtElements = new ArrayList<>(elements.size());
             for (int i = 0; i < elements.size(); i++) {
+                String indexString = i == 0 ? "" : String.valueOf(i);
                 builtElements.add(buildElement(String.format(ELEMENT_FORMAT,
                                                              this,
-                                                             i),
+                                                             indexString),
                                                elements.get(i),
                                                createElementSupplier(i, timeout)));
             }
