@@ -20,6 +20,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,17 +28,44 @@ import java.util.List;
 
 import static com.redfin.validity.Validity.validate;
 
+/**
+ * Base class for any page object initializer implementation.
+ * The page object initializer is responsible for initializing any element
+ * locators in a page object or widget object recursively. What types of annotations
+ * are supported and how they are converted into an element locator is up to the
+ * concrete subclass.
+ *
+ * @param <D> the type of wrapped WebDriver.
+ * @param <W> the type of wrapped WebElement.
+ * @param <C> the type of {@link AbstractPsConfig} used by the implementing type.
+ * @param <P> the type of {@link AbstractPsDriver} used by the implementing type.
+ * @param <B> the type of {@link AbstractPsElementLocatorBuilder} used by the implementing type.
+ * @param <L> the type of {@link AbstractPsElementLocator} used by the implementing type.
+ * @param <E> the type of {@link AbstractPsElement} used by the implementing type.
+ */
 public abstract class AbstractPsPageObjectInitializer<D extends WebDriver,
-        W extends WebElement,
-        C extends AbstractPsConfig<D, W, C, P, B, L, E>,
-        P extends AbstractPsDriver<D, W, C, P, B, L, E>,
-        B extends AbstractPsElementLocatorBuilder<D, W, C, P, B, L, E>,
-        L extends AbstractPsElementLocator<D, W, C, P, B, L, E>,
-        E extends AbstractPsElement<D, W, C, P, B, L, E>> {
+                                                      W extends WebElement,
+                                                      C extends AbstractPsConfig<D, W, C, P, B, L, E>,
+                                                      P extends AbstractPsDriver<D, W, C, P, B, L, E>,
+                                                      B extends AbstractPsElementLocatorBuilder<D, W, C, P, B, L, E>,
+                                                      L extends AbstractPsElementLocator<D, W, C, P, B, L, E>,
+                                                      E extends AbstractPsElement<D, W, C, P, B, L, E>> {
 
     private final P driver;
     private final Class<L> elementLocatorClass;
 
+    /**
+     * Create a new {@link AbstractPsPageObjectInitializer} instance with the given
+     * driver and element locator type.
+     *
+     * @param driver              the driver used as the parent search context for locating elements.
+     *                            May not be null.
+     * @param elementLocatorClass the type of element locator to be initialized. Note that
+     *                            the initializer will not initialize sub class types of this.
+     *                            May not be null.
+     *
+     * @throws IllegalArgumentException if either driver or elementLocatorClass are null.
+     */
     public AbstractPsPageObjectInitializer(P driver,
                                            Class<L> elementLocatorClass) {
         this.driver = validate().withMessage("Cannot use a null patient driver.")
@@ -48,6 +76,18 @@ public abstract class AbstractPsPageObjectInitializer<D extends WebDriver,
                                              .isNotNull();
     }
 
+    /**
+     * @param searchContext the search context for the element to be located within.
+     * @param fields        the list of fields, in order, in the hierarchy to the given
+     *                      element from the outermost page object. The element field that
+     *                      will be initialized will be the last element of the list.
+     *                      May not be null or empty.
+     *
+     * @return an element locator built with the given values. May return null if
+     * the element shouldn't be initialized.
+     *
+     * @throws IllegalArgumentException if searchContext or fields are null or if fields is empty.
+     */
     protected abstract L buildElementLocator(FindsElements<D, W, C, P, B, L, E> searchContext,
                                              List<Field> fields);
 
@@ -197,6 +237,8 @@ public abstract class AbstractPsPageObjectInitializer<D extends WebDriver,
             // page objects. We can ignore interfaces since they don't have instance fields.
             while (clazz != Object.class) {
                 Arrays.stream(clazz.getDeclaredFields())
+                      // We don't want to deal with static fields though
+                      .filter(field -> !Modifier.isStatic(field.getModifiers()))
                       .forEach(field -> this.initializeField(searchContext,
                                                              pageObject,
                                                              parentFields,
@@ -207,18 +249,48 @@ public abstract class AbstractPsPageObjectInitializer<D extends WebDriver,
         }
     }
 
+    /**
+     * @return the driver used to initialize page objects instances.
+     */
     protected final P getDriver() {
         return driver;
     }
 
+    /**
+     * @return the class of element locator that will be initialized.
+     */
     protected final Class<L> getElementLocatorClass() {
         return elementLocatorClass;
     }
 
+    /**
+     * Initialize all null element locators of the type returned by {@link #getElementLocatorClass()}
+     * in the given page object and recursively initialize any non-null page objects that are fields of
+     * the given page object.
+     *
+     * @param page the page object to be initialized.
+     *             May not be null.
+     * @param <T>  the type of the page argument.
+     *
+     * @throws IllegalArgumentException if page is null.
+     */
     public final <T extends AbstractPsPageObject<D, W, C, P, B, L, E>> void initialize(T page) {
         initialize(page, driver);
     }
 
+    /**
+     * Same as the {@link #initialize(AbstractPsPageObject)} method except it uses the given
+     * {@link FindsElements} value as the outer search context for the page rather than using the
+     * given driver.
+     *
+     * @param page        the page object ot be initialized.
+     *                    May not be null.
+     * @param pageContext the search context to use to initialize the page.
+     *                    May not be null.
+     * @param <T>         the type of the page argument.
+     *
+     * @throws IllegalArgumentException if page or pageContext are null.
+     */
     public final <T extends AbstractPsPageObject<D, W, C, P, B, L, E>> void initialize(T page,
                                                                                        FindsElements<D, W, C, P, B, L, E> pageContext) {
         validate().withMessage("Cannot use a null page.")

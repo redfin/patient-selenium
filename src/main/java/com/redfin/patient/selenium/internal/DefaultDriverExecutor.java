@@ -20,10 +20,28 @@ import org.openqa.selenium.WebDriver;
 
 import java.util.function.Supplier;
 
+/**
+ * The default implementation of the {@link DriverExecutor} interface for
+ * the Patient-Selenium library. It takes in a supplier of web drivers to
+ * allow for lazy initialization.
+ *
+ * @param <D> the type of wrapped {@link WebDriver}.
+ */
 public final class DefaultDriverExecutor<D extends WebDriver>
            extends AbstractCachingExecutor<D>
         implements DriverExecutor<D> {
 
+    /**
+     * Create a new instance of a {@link DefaultDriverExecutor} with the
+     * given supplier of web drivers.
+     *
+     * @param driverSupplier the supplier to retrieve {@link WebDriver} instances
+     *                       from for use. The supplier must never return a null value
+     *                       or an exception will be thrown at that time.
+     *                       May not be null.
+     *
+     * @throws IllegalArgumentException if driverSupplier is null.
+     */
     public DefaultDriverExecutor(Supplier<D> driverSupplier) {
         super(null, driverSupplier);
     }

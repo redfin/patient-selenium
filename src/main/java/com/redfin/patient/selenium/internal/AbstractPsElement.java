@@ -21,19 +21,47 @@ import org.openqa.selenium.WebElement;
 
 import static com.redfin.validity.Validity.validate;
 
+/**
+ * Base type for an element.
+ * This is an immutable type that allows you to interact with the wrapped
+ * selenium element.
+ *
+ * @param <D>    the type of wrapped WebDriver.
+ * @param <W>    the type of wrapped WebElement.
+ * @param <C>    the type of {@link AbstractPsConfig} used by the implementing type.
+ * @param <P>    the type of {@link AbstractPsDriver} used by the implementing type.
+ * @param <B>    the type of {@link AbstractPsElementLocatorBuilder} used by the implementing type.
+ * @param <L>    the type of {@link AbstractPsElementLocator} used by the implementing type.
+ * @param <THIS> the type of {@link AbstractPsElement} used by the implementing type.
+ */
 public abstract class AbstractPsElement<D extends WebDriver,
-        W extends WebElement,
-        C extends AbstractPsConfig<D, W, C, P, B, L, THIS>,
-        P extends AbstractPsDriver<D, W, C, P, B, L, THIS>,
-        B extends AbstractPsElementLocatorBuilder<D, W, C, P, B, L, THIS>,
-        L extends AbstractPsElementLocator<D, W, C, P, B, L, THIS>,
-        THIS extends AbstractPsElement<D, W, C, P, B, L, THIS>>
-        extends AbstractPsBase<D, W, C, P, B, L, THIS>
-        implements FindsElements<D, W, C, P, B, L, THIS> {
+                                        W extends WebElement,
+                                        C extends AbstractPsConfig<D, W, C, P, B, L, THIS>,
+                                        P extends AbstractPsDriver<D, W, C, P, B, L, THIS>,
+                                        B extends AbstractPsElementLocatorBuilder<D, W, C, P, B, L, THIS>,
+                                        L extends AbstractPsElementLocator<D, W, C, P, B, L, THIS>,
+                                     THIS extends AbstractPsElement<D, W, C, P, B, L, THIS>>
+              extends AbstractPsBase<D, W, C, P, B, L, THIS>
+           implements FindsElements<D, W, C, P, B, L, THIS> {
 
     private final P driver;
     private final ElementExecutor<W> elementExecutor;
 
+    /**
+     * Create a new {@link AbstractPsElement} instance.
+     *
+     * @param description     the String description of the wrapped element.
+     *                        May not be null or empty.
+     * @param config          the {@link AbstractPsConfig} for this instance.
+     *                        May not be null.
+     * @param driver          the {@link AbstractPsDriver} that was used to locate this element.
+     *                        May not be null.
+     * @param elementExecutor the {@link ElementExecutor} that actually wraps the
+     *                        desired element.
+     *                        May not be null.
+     *
+     * @throws IllegalArgumentException if any argument is null or if the description is empty.
+     */
     public AbstractPsElement(String description,
                              C config,
                              P driver,
@@ -47,10 +75,16 @@ public abstract class AbstractPsElement<D extends WebDriver,
                                          .isNotNull();
     }
 
+    /**
+     * @return the driver used to locate this element.
+     */
     protected final P getDriver() {
         return driver;
     }
 
+    /**
+     * @return the given {@link ElementExecutor}.
+     */
     public final ElementExecutor<W> withWrappedElement() {
         return elementExecutor;
     }

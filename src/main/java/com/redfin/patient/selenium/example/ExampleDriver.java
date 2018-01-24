@@ -1,3 +1,19 @@
+/*
+ * Copyright: (c) 2017 Redfin
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.redfin.patient.selenium.example;
 
 import com.redfin.patient.selenium.internal.AbstractPsDriver;
@@ -13,13 +29,13 @@ import java.net.URL;
 import java.util.Set;
 
 public class ExampleDriver
-        extends AbstractPsDriver<WebDriver,
-        WebElement,
-        ExampleConfig,
-        ExampleDriver,
-        ExampleElementLocatorBuilder,
-        ExampleElementLocator,
-        ExampleElement> {
+     extends AbstractPsDriver<WebDriver,
+                              WebElement,
+                              ExampleConfig,
+                              ExampleDriver,
+                              ExampleElementLocatorBuilder,
+                              ExampleElementLocator,
+                              ExampleElement> {
 
     private final TargetLocator targetLocator = new TargetLocator();
     private final Navigation navigation = new Navigation();
@@ -47,7 +63,7 @@ public class ExampleDriver
                                                               getDescription()),
                                                 getConfig(),
                                                 this,
-                                                   by -> withWrappedDriver().apply(d -> d.findElements(by)));
+                                                by -> withWrappedDriver().apply(d -> d.findElements(by)));
     }
 
     public ExampleDriver get(String url) {
