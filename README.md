@@ -5,7 +5,7 @@
 
 ## Overview
 
-Patient-Selenium is designed to be a wrapper around the [Selenium](https://github.com/SeleniumHQ/selenium) which allows you to automate user interactions with a web browser.
+Patient-Selenium is designed to be a wrapper around [Selenium](https://github.com/SeleniumHQ/selenium) which allows you to automate user interactions with a web browser.
 It has a fluent API and has built in support for waiting for elements to be in a usable state before interacting with them.
 It also makes a best effort at retrying executing commands if a StaleElementReferenceException is caught.
 These features together make it useful when trying to write automated tests for a site that heavily use asynchronous JavaScript.
