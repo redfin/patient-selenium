@@ -26,6 +26,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -232,79 +233,55 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
     }
 
     /**
-     * Same as calling {@link #get(int, Duration)} with an index of 0 and the default timeout.
+     * @param index the int index for the desired element to be returned (0 based indexing).
      *
-     * @return the first matching element.
+     * @return a {@link SpecificPsElementRequest} instance with the given index request.
      *
      * @throws IllegalArgumentException if index is negative.
-     * @throws NoSuchElementException   if no n-th matching element is found and the timeout is reached.
+     */
+    public final SpecificPsElementRequest<D, W, C, P, B, THIS, E> atIndex(int index) {
+        BiFunction<Integer, Duration, E> specificElementRequestFunction = (i, timeout) -> {
+            Supplier<W> elementSupplier = createElementSupplier(i, timeout);
+            String indexString = i == 0 ? "" : String.valueOf(i);
+            return buildElement(String.format(ELEMENT_FORMAT,
+                                              this,
+                                              indexString),
+                                elementSupplier.get(),
+                                elementSupplier);
+        };
+        return new SpecificPsElementRequest<>(specificElementRequestFunction, index, defaultTimeout);
+    }
+
+    /**
+     * Syntactic sugar for calling {@link #atIndex(int)} with an index of 0 and then calling
+     * {@link SpecificPsElementRequest#get(Duration)} with the default timeout.
+     *
+     * @see SpecificPsElementRequest#get(Duration)
+     *
+     * @return requested element.
+     *
+     * @throws NoSuchElementException if no matching element is found within the default timeout.
      */
     public final E get() {
-        return get(0, defaultTimeout);
+        return atIndex(0).get(defaultTimeout);
     }
 
     /**
-     * Same as calling {@link #get(int, Duration)} with an index of 0.
+     * Syntactic sugar for calling {@link #atIndex(int)} with an index of 0 and then calling
+     * {@link SpecificPsElementRequest#get(Duration)} with the given timeout.
      *
-     * @param timeout the {@link Duration} timeout.
-     *                Note that a duration of 0 means try to locate an element once.
+     * @see SpecificPsElementRequest#get(Duration)
+     *
+     * @param timeout the Duration timeout for trying to locate a matching element.
      *                May not be null or negative.
      *
-     * @return the first matching element.
+     * @return requested element.
      *
      * @throws IllegalArgumentException if timeout is null or negative.
-     * @throws NoSuchElementException   if no n-th matching element is found and the timeout is reached.
+     * @throws NoSuchElementException   if no matching element is found within the timeout.
      */
     public final E get(Duration timeout) {
-        return get(0, timeout);
-    }
-
-    /**
-     * Same as calling {@link #get(int, Duration)} with the default timeout.
-     *
-     * @param index the index of the desired matching element.
-     *              May not be negative.
-     *
-     * @return the n-th matching element.
-     *
-     * @throws IllegalArgumentException if index is negative.
-     * @throws NoSuchElementException   if no n-th matching element is found and the timeout is reached.
-     */
-    public final E get(int index) {
-        return get(index, defaultTimeout);
-    }
-
-    /**
-     * Keep trying to locate the n-th element that matches the set requirements.
-     * The index is zero based so the first element would be index 0.
-     * If the timeout is reached and no n-th element is found then throw an exception.
-     *
-     * @param index   the index of the desired matching element.
-     *                May not be negative.
-     * @param timeout the {@link Duration} timeout.
-     *                Note that a duration of 0 means try to locate an element once.
-     *                May not be null or negative.
-     *
-     * @return the n-th matching element.
-     *
-     * @throws IllegalArgumentException if index is negative or if timeout is null or negative.
-     * @throws NoSuchElementException   if no n-th matching element is found and the timeout is reached.
-     */
-    public final E get(int index,
-                       Duration timeout) {
-        validate().withMessage("Cannot locate an element with a negative index.")
-                  .that(index)
-                  .isAtLeast(0);
-        validate().withMessage("Cannot locate an element with a null or negative timeout.")
-                  .that(timeout)
-                  .isGreaterThanOrEqualToZero();
-        Supplier<W> elementSupplier = createElementSupplier(index, timeout);
-        String indexString = index == 0 ? "" : String.valueOf(index);
-        return buildElement(String.format(ELEMENT_FORMAT,
-                                          this,
-                                          indexString),
-                            elementSupplier.get(),
-                            elementSupplier);
+        return atIndex(0).get(timeout);
     }
 
     /**
@@ -413,7 +390,7 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
         OptionalExecutor optionalExecutor;
         try {
             // Supply the consumer with the found element, if any
-            E element = get(0, timeout);
+            E element = get(timeout);
             // Element found, execute this consumer and not a subsequent one
             optionalExecutor = new OptionalExecutor(false);
             consumer.accept(element);

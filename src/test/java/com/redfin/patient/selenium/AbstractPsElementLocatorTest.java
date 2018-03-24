@@ -30,20 +30,18 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
-import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import static com.redfin.patient.selenium.ElementLocatorTestHelper.getSuccessfulInstance;
+import static com.redfin.patient.selenium.ElementLocatorTestHelper.getUnsuccessfulInstance;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -94,48 +92,6 @@ final class AbstractPsElementLocatorTest
                                         defaultNotPresentTimeout,
                                         elementSupplier,
                                         elementFilter);
-    }
-
-    private PsElementLocatorImpl getSuccessfulInstance(Duration timeout) {
-        return getSuccessfulInstance(timeout, timeout);
-    }
-
-    @SuppressWarnings("unchecked")
-    private PsElementLocatorImpl getSuccessfulInstance(Duration timeout,
-                                                       Duration notPresentTimeout) {
-        WebElement element1 = mock(WebElement.class);
-        WebElement element2 = mock(WebElement.class);
-        WebElement element3 = mock(WebElement.class);
-        when(element1.isDisplayed()).thenReturn(false);
-        when(element2.isDisplayed()).thenReturn(true);
-        when(element3.isDisplayed()).thenReturn(true);
-        when(element1.getText()).thenReturn("element1");
-        when(element2.getText()).thenReturn("element2");
-        when(element3.getText()).thenReturn("element3");
-        PsConfigImpl config = new PsConfigImpl();
-        return new PsElementLocatorImpl("description",
-                                        config,
-                                        new PsDriverImpl("driver", config, mock(DriverExecutor.class)),
-                                        PatientWait.builder().build(),
-                                        timeout,
-                                        notPresentTimeout,
-                                        () -> Arrays.asList(element1, element2, element3),
-                                        WebElement::isDisplayed);
-    }
-
-    @SuppressWarnings("unchecked")
-    private PsElementLocatorImpl getUnsuccessfulInstance(Duration timeout) {
-        Function<String, NoSuchElementException> exceptionFunction = NoSuchElementException::new;
-        PsConfigImpl config = mock(PsConfigImpl.class);
-        when(config.getElementNotFoundExceptionBuilderFunction()).thenReturn(exceptionFunction);
-        return new PsElementLocatorImpl("description",
-                                        config,
-                                        new PsDriverImpl("driver", config, mock(DriverExecutor.class)),
-                                        PatientWait.builder().build(),
-                                        timeout,
-                                        Duration.ZERO,
-                                        Collections::emptyList,
-                                        WebElement::isDisplayed);
     }
 
     @SuppressWarnings("unchecked")
@@ -367,53 +323,57 @@ final class AbstractPsElementLocatorTest
         }
 
         @Nested
-        @DisplayName("when get is called")
-        final class GetTests {
+        @DisplayName("when atIndex is called")
+        final class AtIndexTests {
 
             @Test
-            @DisplayName("with no arguments it calls get(int, Duration) with an index of 0 and the default timeout")
-            void testNoArgGetCallsGetWithIndexOfZeroAndDefaultTimeout() {
-                Duration timeout = Duration.ofMinutes(5);
-                PsElementLocatorImpl el = spy(getSuccessfulInstance(timeout));
-                Assertions.assertNotNull(el.get(),
-                                         "Expected to get a non-null element");
-                verify(el).get(0, timeout);
-            }
-
-            @Test
-            @DisplayName("with timeout argument it calls get(int, Duration) with an index of 0 and the given timeout")
-            void testTimeoutGetCallsGetWithIndexOfZeroAndGivenTimeout() {
-                Duration timeout = Duration.ofMinutes(5);
-                PsElementLocatorImpl el = spy(getSuccessfulInstance(timeout));
-                Assertions.assertNotNull(el.get(timeout),
-                                         "Expected to get a non-null element");
-                verify(el).get(0, timeout);
-            }
-
-            @Test
-            @DisplayName("with index argument it calls get(int, Duration) with the given index and the default timeout")
-            void testIndexGetCallsGetWithGivenIndexAndDefaultTimeout() {
-                Duration timeout = Duration.ofMinutes(5);
-                int index = 1;
-                PsElementLocatorImpl el = spy(getSuccessfulInstance(timeout));
-                Assertions.assertNotNull(el.get(index),
-                                         "Expected to get a non-null element");
-                verify(el).get(index, timeout);
+            @DisplayName("it creates the expected object with the given index and the default timeout")
+            void testAtIndexReturnsExpectedObject() {
+                int index = 2;
+                Duration timeout = Duration.ofMinutes(2);
+                SpecificPsElementRequest request = getSuccessfulInstance(timeout).atIndex(index);
+                Assertions.assertAll(() -> Assertions.assertEquals(index, request.getIndex(), "Expected atIndex request to return requested index."),
+                                     () -> Assertions.assertEquals(timeout, request.getDefaultTimeout(), "Expected atIndex request to return the set default timeout."));
             }
 
             @Test
             @DisplayName("throws an exception for a negative index")
-            void testGetWithNegativeIndexThrows() {
+            void testAtIndexWithNegativeIndexThrows() {
                 Assertions.assertThrows(IllegalArgumentException.class,
-                                        () -> getInstance().get(-1, Duration.ofMillis(500)),
+                                        () -> getInstance().atIndex(-1),
                                         "Should throw an exception for a negative index.");
+            }
+        }
+
+        @Nested
+        @DisplayName("when get is called")
+        final class GetTests {
+
+            @Test
+            @DisplayName("with no arguments it calls atIndex(int) with an index of 0")
+            void testNoArgGetCallsAtIndexWithZero() {
+                Duration timeout = Duration.ofMinutes(5);
+                PsElementLocatorImpl el = spy(getSuccessfulInstance(timeout));
+                Assertions.assertNotNull(el.get(),
+                                         "Expected to get a non-null element");
+                verify(el).atIndex(0);
+            }
+
+            @Test
+            @DisplayName("with duration argument it calls atIndex(int) with an index of 0")
+            void testDurationArgGetCallsAtIndexWithZero() {
+                Duration timeout = Duration.ofMinutes(5);
+                PsElementLocatorImpl el = spy(getSuccessfulInstance(timeout));
+                Assertions.assertNotNull(el.get(Duration.ofMinutes(2)),
+                                         "Expected to get a non-null element");
+                verify(el).atIndex(0);
             }
 
             @Test
             @DisplayName("throws an exception for a negative timeout")
             void testGetWithNegativeTimeoutThrows() {
                 Assertions.assertThrows(IllegalArgumentException.class,
-                                        () -> getInstance().get(1, Duration.ofMillis(-500)),
+                                        () -> getInstance().get(Duration.ofMillis(-500)),
                                         "Should throw an exception for a negative timeout.");
             }
 
@@ -421,27 +381,8 @@ final class AbstractPsElementLocatorTest
             @DisplayName("throws an exception for a null timeout")
             void testGetWithNullTimeoutThrows() {
                 Assertions.assertThrows(IllegalArgumentException.class,
-                                        () -> getInstance().get(1, null),
+                                        () -> getInstance().get(null),
                                         "Should throw an exception for a null timeout.");
-            }
-
-            @Test
-            @DisplayName("it returns the nth matching element")
-            void testGetReturnsNthMatchingElement() {
-                PsElementLocatorImpl el = getSuccessfulInstance(Duration.ZERO);
-                el.get(1, Duration.ZERO)
-                  .withWrappedElement()
-                  .accept(e -> Assertions.assertEquals("element3",
-                                                       e.getText(),
-                                                       "Expected to get the 2nd matching element."));
-            }
-
-            @Test
-            @DisplayName("and no matching elements are found it throws an exception")
-            void testGetUnsuccessfullyThrowsException() {
-                Assertions.assertThrows(NoSuchElementException.class,
-                                        () -> getUnsuccessfulInstance(Duration.ZERO).get(0, Duration.ZERO),
-                                        "An unsuccessful get should throw an exception.");
             }
         }
 
