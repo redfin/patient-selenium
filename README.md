@@ -13,7 +13,7 @@ The library has a minimal set of methods exposed and is intended to be sub-class
 This allows the end users to expose which methods make sense for the type of browser and/or tests they are writing while still gaining the previously mentioned benefits.
 
 ## Installation
-
+Via maven:
 ```xml
 <dependency>
     <groupId>com.redfin</groupId>
