@@ -331,7 +331,7 @@ final class AbstractPsElementLocatorTest
             void testAtIndexReturnsExpectedObject() {
                 int index = 2;
                 Duration timeout = Duration.ofMinutes(2);
-                SpecificPsElementRequest request = getSuccessfulInstance(timeout).atIndex(index);
+                SpecificPsElementRequestImpl request = getSuccessfulInstance(timeout).atIndex(index);
                 Assertions.assertAll(() -> Assertions.assertEquals(index, request.getIndex(), "Expected atIndex request to return requested index."),
                                      () -> Assertions.assertEquals(timeout, request.getDefaultTimeout(), "Expected atIndex request to return the set default timeout."));
             }
@@ -506,16 +506,6 @@ final class AbstractPsElementLocatorTest
         @Nested
         @DisplayName("when ifNotPresent is called")
         final class IfNotPresentTests {
-
-            @Test
-            @DisplayName("with consumer argument it calls ifNotPresent(Runnable, Duration) with the default not present timeout")
-            void testIfNotPresentWithRunnableCallsIfNotPresentWithDefaultNotPresentTimeout() {
-                Duration notPresentTimeout = Duration.ofMillis(100);
-                PsElementLocatorImpl el = spy(getSuccessfulInstance(Duration.ZERO, notPresentTimeout));
-                Runnable runnable = () -> { };
-                el.ifNotPresent(runnable);
-                verify(el).ifNotPresent(runnable, notPresentTimeout);
-            }
 
             @Test
             @DisplayName("with a null runnable throws an exception")

@@ -36,19 +36,23 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-@DisplayName("A SpecificPsElementRequestTest")
-final class SpecificPsElementRequestTest {
+@DisplayName("A SpecificPsElementRequestImplTest")
+final class SpecificPsElementRequestImplTest {
 
     @SuppressWarnings("unchecked")
-    private SpecificPsElementRequest<WebDriver,
-                                     WebElement,
-                                     PsConfigImpl,
-                                     PsDriverImpl,
-                                     PsElementLocatorBuilderImpl,
-                                     PsElementLocatorImpl,
-                                     PsElementImpl> getRequest(int index,
-                                                               Duration timeout) {
-        return new SpecificPsElementRequest<>((i, t) -> mock(PsElementImpl.class), index, timeout);
+    private SpecificPsElementRequestImpl<WebDriver,
+                                         WebElement,
+                                         PsConfigImpl,
+                                         PsDriverImpl,
+                                         PsElementLocatorBuilderImpl,
+                                         PsElementLocatorImpl,
+                                         PsElementImpl> getRequest(int index,
+                                                                   Duration timeout) {
+        return new SpecificPsElementRequestImpl<>((i, t) -> mock(PsElementImpl.class),
+                                                  (i, t) -> true,
+                                                  index,
+                                                  timeout,
+                                                  timeout);
     }
 
     @Test
@@ -56,7 +60,7 @@ final class SpecificPsElementRequestTest {
     void testRequestReturnsGivenValues() {
         int index = 10;
         Duration timeout = Duration.ofMinutes(5);
-        SpecificPsElementRequest request = getRequest(index, timeout);
+        SpecificPsElementRequestImpl request = getRequest(index, timeout);
         Assertions.assertAll(() -> Assertions.assertEquals(index, request.getIndex(), "A specific element request should return the given index."),
                              () -> Assertions.assertEquals(timeout, request.getDefaultTimeout(), "A specific element request should return the given default timeout."));
     }
@@ -65,7 +69,7 @@ final class SpecificPsElementRequestTest {
     @DisplayName("returns it's given index and default timeout values")
     void testGetCallsGetWithDefaultTimeout() {
         Duration timeout = Duration.ofMinutes(2);
-        SpecificPsElementRequest request = spy(getRequest(0, timeout));
+        SpecificPsElementRequestImpl request = spy(getRequest(0, timeout));
         Assertions.assertNotNull(request.get(),
                                  "Expected a non-null result.");
         verify(request).get(timeout);

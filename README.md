@@ -18,7 +18,7 @@ This allows the end users to expose which methods make sense for the type of bro
 <dependency>
     <groupId>com.redfin</groupId>
     <artifactId>patient-selenium</artifactId>
-    <version>1.0.0</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 

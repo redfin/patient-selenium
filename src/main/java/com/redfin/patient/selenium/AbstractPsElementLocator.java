@@ -56,7 +56,8 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
                                                B extends AbstractPsElementLocatorBuilder<D, W, C, P, B, THIS, E>,
                                             THIS extends AbstractPsElementLocator<D, W, C, P, B, THIS, E>,
                                                E extends AbstractPsElement<D, W, C, P, B, THIS, E>>
-              extends AbstractPsBase<D, W, C, P, B, THIS, E> {
+              extends AbstractPsBase<D, W, C, P, B, THIS, E>
+           implements SpecificElementRequest<D, W, C, P, B, THIS, E> {
 
     private static final String ELEMENT_FORMAT = "%s.get(%s)";
     private static final String NOT_FOUND_FORMAT = "No element found matching %s.get(%s) within %s after %d attempts";
@@ -233,58 +234,6 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
     }
 
     /**
-     * @param index the int index for the desired element to be returned (0 based indexing).
-     *
-     * @return a {@link SpecificPsElementRequest} instance with the given index request.
-     *
-     * @throws IllegalArgumentException if index is negative.
-     */
-    public final SpecificPsElementRequest<D, W, C, P, B, THIS, E> atIndex(int index) {
-        BiFunction<Integer, Duration, E> specificElementRequestFunction = (i, timeout) -> {
-            Supplier<W> elementSupplier = createElementSupplier(i, timeout);
-            String indexString = i == 0 ? "" : String.valueOf(i);
-            return buildElement(String.format(ELEMENT_FORMAT,
-                                              this,
-                                              indexString),
-                                elementSupplier.get(),
-                                elementSupplier);
-        };
-        return new SpecificPsElementRequest<>(specificElementRequestFunction, index, defaultTimeout);
-    }
-
-    /**
-     * Syntactic sugar for calling {@link #atIndex(int)} with an index of 0 and then calling
-     * {@link SpecificPsElementRequest#get(Duration)} with the default timeout.
-     *
-     * @see SpecificPsElementRequest#get(Duration)
-     *
-     * @return requested element.
-     *
-     * @throws NoSuchElementException if no matching element is found within the default timeout.
-     */
-    public final E get() {
-        return atIndex(0).get(defaultTimeout);
-    }
-
-    /**
-     * Syntactic sugar for calling {@link #atIndex(int)} with an index of 0 and then calling
-     * {@link SpecificPsElementRequest#get(Duration)} with the given timeout.
-     *
-     * @see SpecificPsElementRequest#get(Duration)
-     *
-     * @param timeout the Duration timeout for trying to locate a matching element.
-     *                May not be null or negative.
-     *
-     * @return requested element.
-     *
-     * @throws IllegalArgumentException if timeout is null or negative.
-     * @throws NoSuchElementException   if no matching element is found within the timeout.
-     */
-    public final E get(Duration timeout) {
-        return atIndex(0).get(timeout);
-    }
-
-    /**
      * Same as calling {@link #getAll(Duration)} with the default timeout.
      *
      * @return a List of all matching elements as soon as any are found or an empty list if none
@@ -336,134 +285,108 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
     }
 
     /**
-     * Check if there are any elements that can be found (e.g. like
-     * calling {@link #get()} but without the exception if there isn't
-     * anything found. If there are any elements found within the default timeout,
-     * then run the given consumer with the first found element.
-     * If the timeout is reached and no matching elements have been found then
-     * return an {@link OptionalExecutor} that will run any runnable given
-     * to {@link OptionalExecutor#orElse(Runnable)}.
+     * @param index the int index for the desired element to be returned (0 based indexing).
      *
-     * @param consumer the {@link Consumer} to be executed if there is a matching element found.
-     *                 May not be null.
+     * @return a {@link SpecificPsElementRequestImpl} instance with the given index request.
      *
-     * @return an {@link OptionalExecutor} for this elements that will run the
-     * {@link Runnable} given to {@link OptionalExecutor#orElse(Runnable)} if there
-     * are no elements found and the timeout is reached or that won't if any elements are found.
-     *
-     * @throws IllegalArgumentException if consumer is null.
+     * @throws IllegalArgumentException if index is negative.
      */
+    public final SpecificPsElementRequestImpl<D, W, C, P, B, THIS, E> atIndex(int index) {
+        BiFunction<Integer, Duration, E> specificElementRequestFunction = (i, timeout) -> {
+            prepareDriver();
+            Supplier<W> elementSupplier = createElementSupplier(i, timeout);
+            String indexString = i == 0 ? "" : String.valueOf(i);
+            return buildElement(String.format(ELEMENT_FORMAT,
+                                              this,
+                                              indexString),
+                                elementSupplier.get(),
+                                elementSupplier);
+        };
+        BiFunction<Integer, Duration, Boolean> noMatchingElementFunction = (i, timeout) -> {
+            try {
+                wait.from(() -> elementSupplier.get()
+                                               .stream()
+                                               .noneMatch(elementFilter))
+                    .get(timeout);
+                // Empty list found, return true
+                return true;
+            } catch (PatientTimeoutException ignore) {
+                // Timeout reached but matching elements still found, return false
+                return false;
+            }
+        };
+        return new SpecificPsElementRequestImpl<>(specificElementRequestFunction,
+                                                  noMatchingElementFunction,
+                                                  index,
+                                                  defaultTimeout,
+                                                  defaultNotPresentTimeout);
+    }
+
+    /**
+     * Syntactic sugar for calling {@link #atIndex(int)} with a value of 0 and then calling
+     * {@link SpecificElementRequest#get()} on the result.
+     *
+     * @see SpecificElementRequest#get()
+     */
+    @Override
+    public final E get() {
+        return atIndex(0).get(defaultTimeout);
+    }
+
+    /**
+     * Syntactic sugar for calling {@link #atIndex(int)} with a value of 0 and then calling
+     * {@link SpecificElementRequest#get(Duration)} on the result.
+     *
+     * @see SpecificElementRequest#get(Duration)
+     */
+    @Override
+    public final E get(Duration timeout) {
+        return atIndex(0).get(timeout);
+    }
+
+    /**
+     * Syntactic sugar for calling {@link #atIndex(int)} with a value of 0 and then calling
+     * {@link SpecificElementRequest#ifPresent(Consumer)} on the result.
+     *
+     * @see SpecificElementRequest#ifPresent(Consumer)
+     */
+    @Override
     public final OptionalExecutor ifPresent(Consumer<E> consumer) {
         return ifPresent(consumer, defaultTimeout);
     }
 
     /**
-     * Check if there are any elements that can be found (e.g. like
-     * calling {@link #get()} but without the exception if there isn't
-     * anything found. If there are any elements found within the given timeout,
-     * then run the given consumer with the first found element.
-     * If the timeout is reached and no matching elements have been found then
-     * return an {@link OptionalExecutor} that will run any runnable given
-     * to {@link OptionalExecutor#orElse(Runnable)}.
+     * Syntactic sugar for calling {@link #atIndex(int)} with a value of 0 and then calling
+     * {@link SpecificElementRequest#ifPresent(Consumer, Duration)} on the result.
      *
-     * @param consumer the {@link Consumer} to be executed if there is a matching element found.
-     *                 May not be null.
-     * @param timeout  the {@link Duration} timeout to keep trying to check that there
-     *                 are no matching elements.
-     *                 Note that a duration of 0 means try to locate an element one.
-     *                 May not be null or negative.
-     *
-     * @return an {@link OptionalExecutor} for this elements that will run the
-     * {@link Runnable} given to {@link OptionalExecutor#orElse(Runnable)} if there
-     * are no elements found and the timeout is reached or that won't if any elements are found.
-     *
-     * @throws IllegalArgumentException if consumer is null or if timeout is null or negative.
+     * @see SpecificElementRequest#ifPresent(Consumer, Duration)
      */
+    @Override
     public final OptionalExecutor ifPresent(Consumer<E> consumer,
                                             Duration timeout) {
-        validate().withMessage("Cannot execute with a null consumer.")
-                  .that(consumer)
-                  .isNotNull();
-        validate().withMessage("Cannot use a null or negative timeout.")
-                  .that(timeout)
-                  .isGreaterThanOrEqualToZero();
-        OptionalExecutor optionalExecutor;
-        try {
-            // Supply the consumer with the found element, if any
-            E element = get(timeout);
-            // Element found, execute this consumer and not a subsequent one
-            optionalExecutor = new OptionalExecutor(false);
-            consumer.accept(element);
-        } catch (NoSuchElementException ignore) {
-            // Element not found, we will want to run the second given code block, if any
-            optionalExecutor = new OptionalExecutor(true);
-        }
-        return optionalExecutor;
+        return atIndex(0).ifPresent(consumer, timeout);
     }
 
     /**
-     * Same as calling {@link #ifNotPresent(Runnable, Duration)} with the default
-     * timeout.
+     * Syntactic sugar for calling {@link #atIndex(int)} with a value of 0 and then calling
+     * {@link SpecificElementRequest#ifNotPresent(Runnable)} on the result.
      *
-     * @param runnable the {@link Runnable} to be executed if there are no elements
-     *                 found that match.
-     *                 May not be null.
-     *
-     * @return an {@link OptionalExecutor} for this elements that will run the
-     * {@link Runnable} given to {@link OptionalExecutor#orElse(Runnable)} if there
-     * are still elements found and the timeout is reached or that won't if no elements are found.
-     *
-     * @throws IllegalArgumentException if runnable is null.
+     * @see SpecificElementRequest#ifNotPresent(Runnable)
      */
+    @Override
     public final OptionalExecutor ifNotPresent(Runnable runnable) {
-        return ifNotPresent(runnable, defaultNotPresentTimeout);
+        return atIndex(0).ifNotPresent(runnable);
     }
 
     /**
-     * Check if there are any elements that can be found (e.g. like
-     * calling {@link #get()} but without the exception if there isn't
-     * anything found. If there are no elements found within the given timeout,
-     * then run the given runnable. If the timeout is reached and
-     * elements that match are still found return an OptionalExecutor
-     * that will run any runnable given to {@link OptionalExecutor#orElse(Runnable)}.
+     * Syntactic sugar for calling {@link #atIndex(int)} with a value of 0 and then calling
+     * {@link SpecificElementRequest#ifNotPresent(Runnable, Duration)} on the result.
      *
-     * @param runnable the {@link Runnable} to be executed if there are no elements
-     *                 found that match.
-     *                 May not be null.
-     * @param timeout  the {@link Duration} timeout to keep trying to check that there
-     *                 are no matching elements.
-     *                 Note that a duration of 0 means try to locate an element one.
-     *                 May not be null or negative.
-     *
-     * @return an {@link OptionalExecutor} for this elements that will run the
-     * {@link Runnable} given to {@link OptionalExecutor#orElse(Runnable)} if there
-     * are still elements found and the timeout is reached or that won't if no elements are found.
-     *
-     * @throws IllegalArgumentException if consumer is null or if timeout is null or negative.
+     * @see SpecificElementRequest#ifNotPresent(Runnable, Duration)
      */
+    @Override
     public final OptionalExecutor ifNotPresent(Runnable runnable,
                                                Duration timeout) {
-        validate().withMessage("Cannot execute with a null runnable.")
-                  .that(runnable)
-                  .isNotNull();
-        validate().withMessage("Cannot use a null or negative timeout.")
-                  .that(timeout)
-                  .isGreaterThanOrEqualToZero();
-        OptionalExecutor optionalExecutor;
-        try {
-            prepareDriver();
-            wait.from(() -> elementSupplier.get()
-                                           .stream()
-                                           .noneMatch(elementFilter))
-                .get(timeout);
-            // An empty list was found, run this runnable and not a subsequent one
-            optionalExecutor = new OptionalExecutor(false);
-            runnable.run();
-        } catch (PatientTimeoutException ignore) {
-            // Element was still present, we will want to run the second given code block, if any
-            optionalExecutor = new OptionalExecutor(true);
-
-        }
-        return optionalExecutor;
+        return atIndex(0).ifNotPresent(runnable, timeout);
     }
 }
