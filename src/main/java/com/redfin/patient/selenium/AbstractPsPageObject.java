@@ -63,6 +63,15 @@ public abstract class AbstractPsPageObject<D extends WebDriver,
     }
 
     /**
+     * @return the config for the driver that initialized this page.
+     *
+     * @throws IllegalStateException if this page object hasn't been initialized.
+     */
+    protected final C getConfig() {
+        return getDriver().getConfig();
+    }
+
+    /**
      * @return the direct search context used to initialize this page. It might
      * be the same as the driver, but might be a different page object as well.
      *
