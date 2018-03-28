@@ -53,6 +53,7 @@ public abstract class AbstractPsPageObjectInitializer<D extends WebDriver,
 
     private final P driver;
     private final Class<L> elementLocatorClass;
+    private final PageObjectCreator pageObjectCreator;
 
     /**
      * Create a new {@link AbstractPsPageObjectInitializer} instance with the given
@@ -68,12 +69,36 @@ public abstract class AbstractPsPageObjectInitializer<D extends WebDriver,
      */
     public AbstractPsPageObjectInitializer(P driver,
                                            Class<L> elementLocatorClass) {
+        this(driver,
+             elementLocatorClass,
+             null);
+    }
+
+    /**
+     * Create a new {@link AbstractPsPageObjectInitializer} instance with the given
+     * driver and element locator type.
+     *
+     * @param driver              the driver used as the parent search context for locating elements.
+     *                            May not be null.
+     * @param elementLocatorClass the type of element locator to be initialized. Note that
+     *                            the initializer will not initialize sub class types of this.
+     *                            May not be null.
+     * @param pageObjectCreator   the {@link PageObjectCreator} for creating null page object and
+     *                            widget object fields. If this is null then null page object and
+     *                            widget object fields will be ignored during initialization.
+     *
+     * @throws IllegalArgumentException if either driver or elementLocatorClass are null.
+     */
+    public AbstractPsPageObjectInitializer(P driver,
+                                           Class<L> elementLocatorClass,
+                                           PageObjectCreator pageObjectCreator) {
         this.driver = validate().withMessage("Cannot use a null patient driver.")
                                 .that(driver)
                                 .isNotNull();
         this.elementLocatorClass = validate().withMessage("Cannot use a null element locator class.")
                                              .that(elementLocatorClass)
                                              .isNotNull();
+        this.pageObjectCreator = pageObjectCreator;
     }
 
     /**
@@ -172,7 +197,15 @@ public abstract class AbstractPsPageObjectInitializer<D extends WebDriver,
         field.setAccessible(true);
         Object currentValue = getFieldValue(field, pageObject);
         if (AbstractPsPageObject.class.isAssignableFrom(field.getType())) {
-            // It's a page object field, only initialize non-null fields
+            // It's a page object field, check if the field is null and if there is a non-null
+            // page object creator.
+            if (null == currentValue && null != pageObjectCreator) {
+                currentValue = pageObjectCreator.create(field.getType());
+                setFieldValue(field,
+                              pageObject,
+                              currentValue);
+            }
+            // Initialize only if there is now a non-null value for the field
             if (null != currentValue) {
                 List<Field> fields = new ArrayList<>(parentFields);
                 fields.add(field);
