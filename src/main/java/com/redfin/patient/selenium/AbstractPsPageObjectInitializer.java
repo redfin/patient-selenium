@@ -24,7 +24,9 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.redfin.validity.Validity.validate;
 
@@ -53,7 +55,6 @@ public abstract class AbstractPsPageObjectInitializer<D extends WebDriver,
 
     private final P driver;
     private final Class<L> elementLocatorClass;
-    private final PageObjectCreator pageObjectCreator;
 
     /**
      * Create a new {@link AbstractPsPageObjectInitializer} instance with the given
@@ -69,36 +70,12 @@ public abstract class AbstractPsPageObjectInitializer<D extends WebDriver,
      */
     public AbstractPsPageObjectInitializer(P driver,
                                            Class<L> elementLocatorClass) {
-        this(driver,
-             elementLocatorClass,
-             null);
-    }
-
-    /**
-     * Create a new {@link AbstractPsPageObjectInitializer} instance with the given
-     * driver and element locator type.
-     *
-     * @param driver              the driver used as the parent search context for locating elements.
-     *                            May not be null.
-     * @param elementLocatorClass the type of element locator to be initialized. Note that
-     *                            the initializer will not initialize sub class types of this.
-     *                            May not be null.
-     * @param pageObjectCreator   the {@link PageObjectCreator} for creating null page object and
-     *                            widget object fields. If this is null then null page object and
-     *                            widget object fields will be ignored during initialization.
-     *
-     * @throws IllegalArgumentException if either driver or elementLocatorClass are null.
-     */
-    public AbstractPsPageObjectInitializer(P driver,
-                                           Class<L> elementLocatorClass,
-                                           PageObjectCreator pageObjectCreator) {
         this.driver = validate().withMessage("Cannot use a null patient driver.")
                                 .that(driver)
                                 .isNotNull();
         this.elementLocatorClass = validate().withMessage("Cannot use a null element locator class.")
                                              .that(elementLocatorClass)
                                              .isNotNull();
-        this.pageObjectCreator = pageObjectCreator;
     }
 
     /**
@@ -116,7 +93,28 @@ public abstract class AbstractPsPageObjectInitializer<D extends WebDriver,
     protected abstract L buildElementLocator(FindsElements<D, W, C, P, B, L, E> searchContext,
                                              List<Field> fields);
 
-    private Object getFieldValue(Field field, Object objectInstance) {
+    /**
+     * Create and return a page or widget object instance. This allows for page object initializers to utilize
+     * dependency injection mechanisms (e.g. a Guice injector) internally if desired, construct the objects
+     * themselves, or they can return null if they don't want to have set values for null fields).
+     *
+     * @param clazz the class object for the object to be created.
+     * @param <T>   the type of the class to be created.
+     *
+     * @return a new instance of the class or null.
+     */
+    protected abstract <T extends AbstractPsBaseInitializedObject<D, W, C, P, B, L, E>> T buildPageOrWidget(Class<T> clazz);
+
+    private <T extends AbstractPsPageObject<D, W, C, P, B, L, E>> T buildPageObject(Class<T> clazz) {
+        return buildPageOrWidget(clazz);
+    }
+
+    private <T extends AbstractPsWidgetObject<D, W, C, P, B, L, E>> T buildWidgetObject(Class<T> clazz) {
+        return buildPageOrWidget(clazz);
+    }
+
+    private Object getFieldValue(Field field,
+                                 Object objectInstance) {
         validate().withMessage("Cannot use a null field.")
                   .that(field)
                   .isNotNull();
@@ -177,10 +175,10 @@ public abstract class AbstractPsPageObjectInitializer<D extends WebDriver,
 
     @SuppressWarnings("unchecked")
     private void initializeField(FindsElements<D, W, C, P, B, L, E> searchContext,
-                                 AbstractPsPageObject<D, W, C, P, B, L, E> pageObject,
+                                 AbstractPsBaseInitializedObject<D, W, C, P, B, L, E> pageObject,
                                  List<Field> parentFields,
                                  Field field,
-                                 List<AbstractPsPageObject<D, W, C, P, B, L, E>> initializedPageObjects) {
+                                 Set<Class<? extends AbstractPsBaseInitializedObject<D, W, C, P, B, L, E>>> initializationCycleDetector) {
         validate().withMessage("Cannot use a null search context.")
                   .that(searchContext)
                   .isNotNull();
@@ -193,43 +191,59 @@ public abstract class AbstractPsPageObjectInitializer<D extends WebDriver,
         validate().withMessage("Cannot use a null field.")
                   .that(field)
                   .isNotNull();
+        validate().withMessage("Cannot use a null cycle detector set.")
+                  .that(initializationCycleDetector)
+                  .isNotNull();
         // Check the type of the field
         field.setAccessible(true);
         Object currentValue = getFieldValue(field, pageObject);
-        if (AbstractPsPageObject.class.isAssignableFrom(field.getType())) {
-            // It's a page object field, check if the field is null and if there is a non-null
-            // page object creator.
-            if (null == currentValue && null != pageObjectCreator) {
-                currentValue = pageObjectCreator.create(field.getType());
-                setFieldValue(field,
-                              pageObject,
-                              currentValue);
-            }
-            // Initialize only if there is now a non-null value for the field
-            if (null != currentValue) {
-                List<Field> fields = new ArrayList<>(parentFields);
-                fields.add(field);
-                initializePage(searchContext,
-                               (AbstractPsPageObject<D, W, C, P, B, L, E>) currentValue,
-                               fields,
-                               initializedPageObjects);
+        if (AbstractPsBaseInitializedObject.class.isAssignableFrom(field.getType())) {
+            // It's either a page object or a widget
+            Class<? extends AbstractPsBaseInitializedObject<D, W, C, P, B, L, E>> clazz = (Class<? extends AbstractPsBaseInitializedObject<D, W, C, P, B, L, E>>) field.getType();
+            // Check if this is a page object or a widget object
+            if (AbstractPsPageObject.class.isAssignableFrom(field.getType())) {
+                // This is a page object field, create the field if possible
+                if (null == currentValue) {
+                    currentValue = buildPageObject((Class<? extends AbstractPsPageObject<D, W, C, P, B, L, E>>) clazz);
+                    setFieldValue(field,
+                                  pageObject,
+                                  currentValue);
+                }
+                initializeObject(driver,            // Page object fields reset their search context to the driver
+                                 (AbstractPsPageObject<D, W, C, P, B, L, E>) currentValue,
+                                 new ArrayList<>(), // Page object fields reset their parent field list
+                                 initializationCycleDetector);
+            } else if (AbstractPsWidgetObject.class.isAssignableFrom(field.getType())) {
+                // This is a widget object field, create the field if possible
+                List<Field> newParentFields = new ArrayList<>(parentFields);
+                newParentFields.add(field);
+                if (null == currentValue) {
+                    currentValue = buildWidgetObject((Class<? extends AbstractPsWidgetObject<D, W, C, P, B, L, E>>) clazz);
+                    setFieldValue(field,
+                                  pageObject,
+                                  currentValue);
+                }
+                initializeObject(searchContext,
+                                 (AbstractPsWidgetObject<D, W, C, P, B, L, E>) currentValue,
+                                 parentFields,
+                                 initializationCycleDetector);
             }
         } else if (elementLocatorClass.equals(field.getType())) {
-            // It's an element locator field, only initialize null fields
-            if (null == currentValue) {
-                List<Field> fields = new ArrayList<>(parentFields);
-                fields.add(field);
-                setFieldValue(field,
-                              pageObject,
-                              buildElementLocator(searchContext, fields));
-            }
+            // It's an element locator field
+            List<Field> newParentFields = new ArrayList<>(parentFields);
+            newParentFields.add(field);
+            setFieldValue(field,
+                          pageObject,
+                          buildElementLocator(searchContext,
+                                              newParentFields));
         }
     }
 
-    private void initializePage(FindsElements<D, W, C, P, B, L, E> searchContext,
-                                AbstractPsPageObject<D, W, C, P, B, L, E> pageObject,
-                                List<Field> parentFields,
-                                List<AbstractPsPageObject<D, W, C, P, B, L, E>> initializedPageObjects) {
+    @SuppressWarnings("unchecked")
+    private void initializeObject(FindsElements<D, W, C, P, B, L, E> searchContext,
+                                  AbstractPsBaseInitializedObject<D, W, C, P, B, L, E> pageObject,
+                                  List<Field> parentFields,
+                                  Set<Class<? extends AbstractPsBaseInitializedObject<D, W, C, P, B, L, E>>> initializationCycleDetector) {
         validate().withMessage("Cannot use a null search context.")
                   .that(searchContext)
                   .isNotNull();
@@ -239,46 +253,49 @@ public abstract class AbstractPsPageObjectInitializer<D extends WebDriver,
         validate().withMessage("Cannot use a null parent fields list.")
                   .that(parentFields)
                   .isNotNull();
-        validate().withMessage("Cannot use a null initialized page objects list.")
-                  .that(initializedPageObjects)
+        validate().withMessage("Cannot use a null cycle detector set.")
+                  .that(initializationCycleDetector)
                   .isNotNull();
         // Don't do anything if the given object has already been initialized
-        if (initializedPageObjects.stream().noneMatch(o -> pageObject == o)) {
-            // Add the page object to the initialized page objects list
-            initializedPageObjects.add(pageObject);
-            // Initialize the page object fields
-            setFieldValue(AbstractPsPageObject.class,
-                          "driver",
+        Class<? extends AbstractPsBaseInitializedObject<D, W, C, P, B, L, E>> clazz = (Class<? extends AbstractPsBaseInitializedObject<D, W, C, P, B, L, E>>) pageObject.getClass();
+        if (initializationCycleDetector.contains(clazz)) {
+            throw new IllegalStateException(String.format("Cycle detected during page object initialization. Page object type: [%s] has been already seen.",
+                                                          clazz));
+        }
+        Set<Class<? extends AbstractPsBaseInitializedObject<D, W, C, P, B, L, E>>> newInitializationCycleDetector = new HashSet<>(initializationCycleDetector);
+        newInitializationCycleDetector.add(clazz);
+        // Initialize the page object fields
+        setFieldValue(AbstractPsBaseInitializedObject.class,
+                      "driver",
+                      pageObject,
+                      driver);
+        setFieldValue(AbstractPsBaseInitializedObject.class,
+                      "pageContext",
+                      pageObject,
+                      searchContext);
+        // Check if this is also a widget object
+        if (AbstractPsWidgetObject.class.isAssignableFrom(clazz)) {
+            // Set the widget base element field
+            setFieldValue(AbstractPsWidgetObject.class,
+                          "baseElementLocator",
                           pageObject,
-                          driver);
-            setFieldValue(AbstractPsPageObject.class,
-                          "pageContext",
-                          pageObject,
-                          searchContext);
-            // Check if this is also a widget object
-            Class<?> clazz = pageObject.getClass();
-            if (AbstractPsWidgetObject.class.isAssignableFrom(clazz)) {
-                // Set the widget base element field
-                setFieldValue(AbstractPsWidgetObject.class,
-                              "baseElement",
-                              pageObject,
-                              buildElementLocator(searchContext,
-                                                  parentFields));
-            }
-            // Since we want to initialize private fields as well, we need to loop through the
-            // inheritance hierarchy while initializing all element locators and nested
-            // page objects. We can ignore interfaces since they don't have instance fields.
-            while (clazz != Object.class) {
-                Arrays.stream(clazz.getDeclaredFields())
-                      // We don't want to deal with static fields though
-                      .filter(field -> !Modifier.isStatic(field.getModifiers()))
-                      .forEach(field -> this.initializeField(searchContext,
-                                                             pageObject,
-                                                             parentFields,
-                                                             field,
-                                                             initializedPageObjects));
-                clazz = clazz.getSuperclass();
-            }
+                          buildElementLocator(searchContext,
+                                              parentFields));
+        }
+        // Since we want to initialize private fields as well, we need to loop through the
+        // inheritance hierarchy while initializing all element locators and nested
+        // page objects. We can ignore interfaces since they don't have instance fields.
+        Class<?> objectClass = pageObject.getClass();
+        while (objectClass != Object.class) {
+            Arrays.stream(clazz.getDeclaredFields())
+                  // We don't want to deal with static fields though
+                  .filter(field -> !Modifier.isStatic(field.getModifiers()))
+                  .forEach(field -> this.initializeField(searchContext,
+                                                         pageObject,
+                                                         parentFields,
+                                                         field,
+                                                         newInitializationCycleDetector));
+            objectClass = objectClass.getSuperclass();
         }
     }
 
@@ -332,9 +349,9 @@ public abstract class AbstractPsPageObjectInitializer<D extends WebDriver,
         validate().withMessage("Cannot use a null page context.")
                   .that(pageContext)
                   .isNotNull();
-        initializePage(pageContext,
-                       page,
-                       Collections.emptyList(),
-                       new ArrayList<>());
+        initializeObject(pageContext,
+                         page,
+                         Collections.emptyList(),
+                         new HashSet<>());
     }
 }

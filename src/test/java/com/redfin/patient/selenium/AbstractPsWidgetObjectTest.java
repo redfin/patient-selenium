@@ -42,21 +42,21 @@ final class AbstractPsWidgetObjectTest
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     @Test
-    @DisplayName("when getBaseElement() is called should throw an exception if the field hasn't been initialized")
+    @DisplayName("when getBaseElementLocator() is called should throw an exception if the field hasn't been initialized")
     void testGetBaseElementThrowsForNonInitialized() {
         Assertions.assertThrows(IllegalStateException.class,
-                                () -> getInstance().getBaseElement(),
+                                () -> getInstance().getBaseElementLocator(),
                                 "Should throw an exception if the field is still null.");
     }
 
     @Test
-    @DisplayName("when getBaseElement() is called should return the set value if the field has been initialized")
+    @DisplayName("when getBaseElementLocator() is called should return the set value if the field has been initialized")
     void testGetBaseElementReturnsSetValueForInitialized() {
         PsElementLocatorImpl element = mock(PsElementLocatorImpl.class);
         PsWidgetObjectImpl widget = getInstance();
-        initializePageObjectField(AbstractPsWidgetObject.class, "baseElement", widget, element);
+        initializePageObjectField(AbstractPsWidgetObject.class, "baseElementLocator", widget, element);
         Assertions.assertSame(element,
-                              widget.getBaseElement(),
+                              widget.getBaseElementLocator(),
                               "An initialized page should return the given base element.");
     }
 }

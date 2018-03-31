@@ -33,8 +33,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@DisplayName("An AbstractPsPageObjectInitializer")
-final class AbstractPsPageObjectInitializerTest
+@DisplayName("An PageObjectInitializer")
+final class PageObjectInitializerTest
  implements Testable<PsPageObjectInitializerImpl> {
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -57,15 +57,6 @@ final class AbstractPsPageObjectInitializerTest
         // These fields should be touched by the initializer
         private final InnerTestPage innerPage = new InnerTestPage();
         private final PsElementLocatorImpl outerElement = toBeInitialized();
-
-        // These fields should NOT be touched by the initializer
-        private final InnerTestPage nullInnerPage = null;
-        private final PsElementLocatorImpl nonNullElement;
-
-        private TestPage() {
-            nonNullElement = mock(PsElementLocatorImpl.class);
-            when(nonNullElement.getDescription()).thenReturn("not touched");
-        }
     }
 
     private static final class InnerTestPage
@@ -142,17 +133,8 @@ final class AbstractPsPageObjectInitializerTest
             getInstance().initialize(page);
             Assertions.assertAll(() -> Assertions.assertNotNull(page.outerElement),
                                  () -> Assertions.assertNotNull(page.innerPage.element),
-                                 () -> Assertions.assertNotNull(page.innerPage.widget.getBaseElement()),
+                                 () -> Assertions.assertNotNull(page.innerPage.widget.getBaseElementLocator()),
                                  () -> Assertions.assertNotNull(page.innerPage.widget.element));
-        }
-
-        @Test
-        @DisplayName("when it initializes a page object it ignores null page object fields and non-null element locator fields")
-        void testInitializerDoesNotInitializeExpectedFields() {
-            TestPage page = new TestPage();
-            getInstance().initialize(page);
-            Assertions.assertAll(() -> Assertions.assertNull(page.nullInnerPage),
-                                 () -> Assertions.assertEquals("not touched", page.nonNullElement.getDescription()));
         }
     }
 }

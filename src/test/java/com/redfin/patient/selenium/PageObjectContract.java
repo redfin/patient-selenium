@@ -32,13 +32,13 @@ import java.lang.reflect.Field;
 
 import static org.mockito.Mockito.mock;
 
-public interface PageObjectContract<T extends AbstractPsPageObject<WebDriver,
-                                                                   WebElement,
-                                                                   PsConfigImpl,
-                                                                   PsDriverImpl,
-                                                                   PsElementLocatorBuilderImpl,
-                                                                   PsElementLocatorImpl,
-                                                                   PsElementImpl>>
+public interface PageObjectContract<T extends AbstractPsBaseInitializedObject<WebDriver,
+                                                                 WebElement,
+                                                                 PsConfigImpl,
+                                                                 PsDriverImpl,
+                                                                 PsElementLocatorBuilderImpl,
+                                                                 PsElementLocatorImpl,
+                                                                 PsElementImpl>>
          extends Testable<T> {
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -82,28 +82,28 @@ public interface PageObjectContract<T extends AbstractPsPageObject<WebDriver,
     default void testGetDriverReturnsSetValueForInitialized() {
         PsDriverImpl driver = mock(PsDriverImpl.class);
         T page = getInstance();
-        initializePageObjectField(AbstractPsPageObject.class, "driver", page, driver);
+        initializePageObjectField(AbstractPsBaseInitializedObject.class, "driver", page, driver);
         Assertions.assertSame(driver,
                               page.getDriver(),
                               "An initialized page should return the given driver.");
     }
 
     @Test
-    @DisplayName("when getPageSearchContext() is called should throw an exception if the field hasn't been initialized")
+    @DisplayName("when getSearchContext() is called should throw an exception if the field hasn't been initialized")
     default void testGetPageSearchContextThrowsForNonInitialized() {
         Assertions.assertThrows(IllegalStateException.class,
-                                () -> getInstance().getPageSearchContext(),
+                                () -> getInstance().getSearchContext(),
                                 "Should throw an exception if the field is still null.");
     }
 
     @Test
-    @DisplayName("when getPageSearchContext() is called should return the set value if the field has been initialized")
+    @DisplayName("when getSearchContext() is called should return the set value if the field has been initialized")
     default void testGetPageSearchContextReturnsSetValueForInitialized() {
         PsDriverImpl driver = mock(PsDriverImpl.class);
         T page = getInstance();
-        initializePageObjectField(AbstractPsPageObject.class, "pageContext", page, driver);
+        initializePageObjectField(AbstractPsBaseInitializedObject.class, "pageContext", page, driver);
         Assertions.assertSame(driver,
-                              page.getPageSearchContext(),
+                              page.getSearchContext(),
                               "An initialized page should return the given search context.");
     }
 }

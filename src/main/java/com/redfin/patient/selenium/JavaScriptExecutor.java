@@ -26,6 +26,38 @@ public interface JavaScriptExecutor {
     /**
      * Same as the Selenium JavaScript execution except it will handle
      * "unwrapping" the patient-selenium elements if given as an arguments.
+     * This version does not return a value. If you have a "return" statement
+     * at the end of your JavaScript, use the method {@link #scriptWithResult(String, Object...)}.
+     *
+     * @param script the String JavaScript to be executed.
+     *               May not be null or empty.
+     * @param args   the Array of Object arguments to be used in the script.
+     *               May be null or empty.
+     *
+     * @throws IllegalArgumentException if script is null or empty.
+     * @see org.openqa.selenium.JavascriptExecutor#executeScript(String, Object...)
+     */
+    void script(String script, Object... args);
+
+    /**
+     * Same as the Selenium async JavaScript execution except it will handle
+     * "unwrapping" the patient-selenium elements if given as an arguments.
+     * This version does not return a value. If you have a "return" statement
+     * at the end of your JavaScript, use the method {@link #scriptWithResult(String, Object...)}.
+     *
+     * @param script the String JavaScript to be executed.
+     *               May not be null or empty.
+     * @param args   the Array of Object arguments to be used in the script.
+     *               May be null or empty.
+     *
+     * @throws IllegalArgumentException if script is null or empty.
+     * @see org.openqa.selenium.JavascriptExecutor#executeAsyncScript(String, Object...)
+     */
+    void asyncScript(String script, Object... args);
+
+    /**
+     * Same as the Selenium JavaScript execution except it will handle
+     * "unwrapping" the patient-selenium elements if given as an arguments.
      *
      * @param script the String JavaScript to be executed.
      *               May not be null or empty.
@@ -37,7 +69,7 @@ public interface JavaScriptExecutor {
      * @throws IllegalArgumentException if script is null or empty.
      * @see org.openqa.selenium.JavascriptExecutor#executeScript(String, Object...)
      */
-    Object script(String script, Object... args);
+    Object scriptWithResult(String script, Object... args);
 
     /**
      * Same as the Selenium async JavaScript execution except it will handle
@@ -53,5 +85,5 @@ public interface JavaScriptExecutor {
      * @throws IllegalArgumentException if script is null or empty.
      * @see org.openqa.selenium.JavascriptExecutor#executeAsyncScript(String, Object...)
      */
-    Object asyncScript(String script, Object... args);
+    Object asyncScriptWithResult(String script, Object... args);
 }

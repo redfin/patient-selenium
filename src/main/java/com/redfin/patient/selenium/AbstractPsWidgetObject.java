@@ -23,9 +23,11 @@ import static com.redfin.validity.Validity.expect;
 
 /**
  * Base class for a page widget.
+ *
  * A widget is a form of page object that contains a base element locator.
  * This is to represent the outer container for a widget that might live
  * on multiple pages on a web site.
+ *
  * When included in a page object you typically need to annotate the widget
  * in such a way it knows how to build the base element locator but the
  * details are up to the page object initializer implementation.
@@ -45,19 +47,19 @@ public abstract class AbstractPsWidgetObject<D extends WebDriver,
                                              B extends AbstractPsElementLocatorBuilder<D, W, C, P, B, L, E>,
                                              L extends AbstractPsElementLocator<D, W, C, P, B, L, E>,
                                              E extends AbstractPsElement<D, W, C, P, B, L, E>>
-              extends AbstractPsPageObject<D, W, C, P, B, L, E> {
+              extends AbstractPsBaseInitializedObject<D, W, C, P, B, L, E> {
 
-    private final L baseElement = null;
+    private final L baseElementLocator = null;
 
     /**
-     * @return the base element for this widget.
+     * @return the base element locator for this widget.
      *
      * @throws IllegalStateException if this widget wasn't initialized by a page object initializer.
      */
-    protected final L getBaseElement() {
+    protected final L getBaseElementLocator() {
         expect().withMessage("This widget object has not been initialized by a page object initializer.")
-                .that(baseElement)
+                .that(baseElementLocator)
                 .isNotNull();
-        return baseElement;
+        return baseElementLocator;
     }
 }

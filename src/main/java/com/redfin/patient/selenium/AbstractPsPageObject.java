@@ -19,16 +19,20 @@ package com.redfin.patient.selenium;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
-import static com.redfin.validity.Validity.expect;
-
 /**
  * Base class for a page object.
+ *
  * A page object is a container for declaring element locators via annotations
  * to create a selenium representation of a particular web page.
  * This allows you to respond to changes in a particular web page in a centralized
  * location.
+ *
  * Note that element locator fields or page objects that are to be recursively initialized
  * must be declared as instance fields (e.g. static fields are ignored).
+ *
+ * A subclass of this type, when initialized by a page object initializer has the search
+ * context for set as the driver (e.g. even if this is a field on a widget it won't use the
+ * base element of the widget as the context to search within).
  *
  * @param <D> the type of wrapped WebDriver.
  * @param <W> the type of wrapped WebElement.
@@ -44,52 +48,8 @@ public abstract class AbstractPsPageObject<D extends WebDriver,
                                            P extends AbstractPsDriver<D, W, C, P, B, L, E>,
                                            B extends AbstractPsElementLocatorBuilder<D, W, C, P, B, L, E>,
                                            L extends AbstractPsElementLocator<D, W, C, P, B, L, E>,
-                                           E extends AbstractPsElement<D, W, C, P, B, L, E>> {
+                                           E extends AbstractPsElement<D, W, C, P, B, L, E>>
+              extends AbstractPsBaseInitializedObject<D, W, C, P, B, L, E> {
 
-    private static final Object NULL = null;
-
-    private final P driver = null;
-    private final FindsElements<D, W, C, P, B, L, E> pageContext = null;
-
-    /**
-     * @return the driver used as the outer context to initialize this page.
-     *
-     * @throws IllegalStateException if this page object hasn't been initialized.
-     */
-    protected final P getDriver() {
-        return expect().withMessage("This page object has not been initialized by a page object initializer.")
-                       .that(driver)
-                       .isNotNull();
-    }
-
-    /**
-     * @return the config for the driver that initialized this page.
-     *
-     * @throws IllegalStateException if this page object hasn't been initialized.
-     */
-    protected final C getConfig() {
-        return getDriver().getConfig();
-    }
-
-    /**
-     * @return the direct search context used to initialize this page. It might
-     * be the same as the driver, but might be a different page object as well.
-     *
-     * @throws IllegalStateException if this page object hasn't been initialized.
-     */
-    protected final FindsElements<D, W, C, P, B, L, E> getPageSearchContext() {
-        return expect().withMessage("This page object has not been initialized by a page object initializer.")
-                       .that(pageContext)
-                       .isNotNull();
-    }
-
-    /**
-     * @param <T> the type the return value should be cast to.
-     *
-     * @return a null value cast to the type T.
-     */
-    @SuppressWarnings("unchecked")
-    protected final <T> T toBeInitialized() {
-        return (T) NULL;
-    }
+    // Nothing needed here
 }

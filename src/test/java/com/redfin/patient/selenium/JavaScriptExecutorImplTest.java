@@ -84,14 +84,14 @@ final class JavaScriptExecutorImplTest
     final class BehaviorTests {
 
         @Nested
-        @DisplayName("when script(String, Object) is called")
+        @DisplayName("when scriptWithResult(String, Object) is called")
         final class ScriptTests {
 
             @Test
             @DisplayName("it calls the executeScript method on the driver")
             void testCallsExpectedDriver() {
                 WebDriver driver = getJsDriver();
-                getInstance(getExecutor(driver)).script("hello");
+                getInstance(getExecutor(driver)).scriptWithResult("hello");
                 verify(((JavascriptExecutor) driver), times(1)).executeScript(any(), any());
             }
 
@@ -99,7 +99,7 @@ final class JavaScriptExecutorImplTest
             @DisplayName("it handles a null argument array")
             void testIgnoresNullArgsArray() {
                 WebDriver driver = getJsDriver();
-                getInstance(getExecutor(driver)).script("hello", (Object[]) null);
+                getInstance(getExecutor(driver)).scriptWithResult("hello", (Object[]) null);
                 verify(((JavascriptExecutor) driver), times(1)).executeScript(any(), any());
             }
 
@@ -111,24 +111,24 @@ final class JavaScriptExecutorImplTest
                 PsElementImpl element = mock(PsElementImpl.class);
                 when(element.withWrappedElement()).thenReturn(elementExecutor);
                 WebDriver driver = getJsDriver();
-                getInstance(getExecutor(driver)).script("hello", element);
+                getInstance(getExecutor(driver)).scriptWithResult("hello", element);
                 verify(elementExecutor, times(1)).apply(any());
             }
 
             @Test
-            @DisplayName("it throws an exception for an empty script string")
+            @DisplayName("it throws an exception for an empty scriptWithResult string")
             void testThrowsForEmptyString() {
                 Assertions.assertThrows(IllegalArgumentException.class,
-                                        () -> getInstance(getExecutor(getJsDriver())).script(""),
-                                        "Should throw an exception for an empty script.");
+                                        () -> getInstance(getExecutor(getJsDriver())).scriptWithResult(""),
+                                        "Should throw an exception for an empty scriptWithResult.");
             }
 
             @Test
-            @DisplayName("it throws an exception for a null script string")
+            @DisplayName("it throws an exception for a null scriptWithResult string")
             void testThrowsForNullScriptString() {
                 Assertions.assertThrows(IllegalArgumentException.class,
-                                        () -> getInstance(getExecutor(getJsDriver())).script(null),
-                                        "Should throw an exception for a null script.");
+                                        () -> getInstance(getExecutor(getJsDriver())).scriptWithResult(null),
+                                        "Should throw an exception for a null scriptWithResult.");
             }
 
             @Test
@@ -136,20 +136,20 @@ final class JavaScriptExecutorImplTest
             @SuppressWarnings("unchecked")
             void testThrowsForNonJavascriptExecutor() {
                 Assertions.assertThrows(IllegalStateException.class,
-                                        () -> getInstance(getExecutor(getNonJsDriver())).script("hello"),
+                                        () -> getInstance(getExecutor(getNonJsDriver())).scriptWithResult("hello"),
                                         "Should throw an exception for a driver that isn't a javascript executor.");
             }
         }
 
         @Nested
-        @DisplayName("when asyncScript(String, Object) is called")
+        @DisplayName("when asyncScriptWithResult(String, Object) is called")
         final class AsyncScriptTests {
 
             @Test
             @DisplayName("it calls the executeAsyncScript method on the driver")
             void testCallsExpectedDriver() {
                 WebDriver driver = getJsDriver();
-                getInstance(getExecutor(driver)).asyncScript("hello");
+                getInstance(getExecutor(driver)).asyncScriptWithResult("hello");
                 verify(((JavascriptExecutor) driver), times(1)).executeAsyncScript(any(), any());
             }
 
@@ -157,7 +157,7 @@ final class JavaScriptExecutorImplTest
             @DisplayName("it handles a null argument array")
             void testIgnoresNullArgsArray() {
                 WebDriver driver = getJsDriver();
-                getInstance(getExecutor(driver)).asyncScript("hello", (Object[]) null);
+                getInstance(getExecutor(driver)).asyncScriptWithResult("hello", (Object[]) null);
                 verify(((JavascriptExecutor) driver), times(1)).executeAsyncScript(any(), any());
             }
 
@@ -169,24 +169,24 @@ final class JavaScriptExecutorImplTest
                 PsElementImpl element = mock(PsElementImpl.class);
                 when(element.withWrappedElement()).thenReturn(elementExecutor);
                 WebDriver driver = getJsDriver();
-                getInstance(getExecutor(driver)).asyncScript("hello", element);
+                getInstance(getExecutor(driver)).asyncScriptWithResult("hello", element);
                 verify(elementExecutor, times(1)).apply(any());
             }
 
             @Test
-            @DisplayName("it throws an exception for an empty asyncScript string")
+            @DisplayName("it throws an exception for an empty asyncScriptWithResult string")
             void testThrowsForEmptyString() {
                 Assertions.assertThrows(IllegalArgumentException.class,
-                                        () -> getInstance(getExecutor(getJsDriver())).asyncScript(""),
-                                        "Should throw an exception for an empty asyncScript.");
+                                        () -> getInstance(getExecutor(getJsDriver())).asyncScriptWithResult(""),
+                                        "Should throw an exception for an empty asyncScriptWithResult.");
             }
 
             @Test
-            @DisplayName("it throws an exception for a null asyncScript string")
+            @DisplayName("it throws an exception for a null asyncScriptWithResult string")
             void testThrowsForNullasyncScriptString() {
                 Assertions.assertThrows(IllegalArgumentException.class,
-                                        () -> getInstance(getExecutor(getJsDriver())).asyncScript(null),
-                                        "Should throw an exception for a null asyncScript.");
+                                        () -> getInstance(getExecutor(getJsDriver())).asyncScriptWithResult(null),
+                                        "Should throw an exception for a null asyncScriptWithResult.");
             }
 
             @Test
@@ -194,7 +194,7 @@ final class JavaScriptExecutorImplTest
             @SuppressWarnings("unchecked")
             void testThrowsForNonJavaasyncScriptExecutor() {
                 Assertions.assertThrows(IllegalStateException.class,
-                                        () -> getInstance(getExecutor(getNonJsDriver())).asyncScript("hello"),
+                                        () -> getInstance(getExecutor(getNonJsDriver())).asyncScriptWithResult("hello"),
                                         "Should throw an exception for a driver that isn't a javaasyncScript executor.");
             }
         }

@@ -16,6 +16,7 @@
 
 package example;
 
+import com.redfin.patient.selenium.AbstractPsBaseInitializedObject;
 import com.redfin.patient.selenium.AbstractPsPageObjectInitializer;
 import com.redfin.patient.selenium.FindsElements;
 import org.openqa.selenium.By;
@@ -23,7 +24,9 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.pagefactory.ByChained;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -42,6 +45,18 @@ public class ExamplePageObjectInitializer
 
     public ExamplePageObjectInitializer(ExampleDriver driver) {
         super(driver, ExampleElementLocator.class);
+    }
+
+    @Override
+    protected <T extends AbstractPsBaseInitializedObject<WebDriver, WebElement, ExampleConfig, ExampleDriver, ExampleElementLocatorBuilder, ExampleElementLocator, ExampleElement>> T buildPageOrWidget(Class<T> clazz) {
+        try {
+            Constructor<T> constructor = clazz.getConstructor();
+            constructor.setAccessible(true);
+            return constructor.newInstance();
+        } catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @Override

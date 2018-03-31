@@ -20,6 +20,7 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 
 import java.util.Arrays;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static com.redfin.validity.Validity.expect;
@@ -52,23 +53,38 @@ final class JavaScriptExecutorImpl<D extends WebDriver>
     }
 
     @Override
-    public Object script(String script,
-                         Object... args) {
+    public void script(String script,
+                       Object... args) {
         validate().withMessage("Cannot execute a null or empty script")
                   .that(script)
                   .isNotEmpty();
-        return driverExecutor.apply(driver -> {
+        driverExecutor.accept(driver -> {
             expect().withMessage("Cannot execute JavaScript as the wrapped driver is not a JavascriptExecutor.")
                     .that(driver)
                     .satisfies(d -> d instanceof JavascriptExecutor);
-            return execute(array -> ((JavascriptExecutor) driver).executeScript(script, array),
-                           args);
+            execute(array -> ((JavascriptExecutor) driver).executeScript(script, array),
+                    args);
         });
     }
 
     @Override
-    public Object asyncScript(String script,
-                              Object... args) {
+    public void asyncScript(String script,
+                            Object... args) {
+        validate().withMessage("Cannot execute a null or empty script")
+                  .that(script)
+                  .isNotEmpty();
+        driverExecutor.accept(driver -> {
+            expect().withMessage("Cannot execute JavaScript as the wrapped driver is not a JavascriptExecutor.")
+                    .that(driver)
+                    .satisfies(d -> d instanceof JavascriptExecutor);
+            execute(array -> ((JavascriptExecutor) driver).executeAsyncScript(script, array),
+                    args);
+        });
+    }
+
+    @Override
+    public Object scriptWithResult(String script,
+                                   Object... args) {
         validate().withMessage("Cannot execute a null or empty script")
                   .that(script)
                   .isNotEmpty();
@@ -76,12 +92,28 @@ final class JavaScriptExecutorImpl<D extends WebDriver>
             expect().withMessage("Cannot execute JavaScript as the wrapped driver is not a JavascriptExecutor.")
                     .that(driver)
                     .satisfies(d -> d instanceof JavascriptExecutor);
-            return execute(array -> ((JavascriptExecutor) driver).executeAsyncScript(script, array),
-                           args);
+            return executeAndReturn(array -> ((JavascriptExecutor) driver).executeScript(script, array),
+                                    args);
         });
     }
 
-    private Object execute(Function<Object[], Object> function, Object... args) {
+    @Override
+    public Object asyncScriptWithResult(String script,
+                                        Object... args) {
+        validate().withMessage("Cannot execute a null or empty script")
+                  .that(script)
+                  .isNotEmpty();
+        return driverExecutor.apply(driver -> {
+            expect().withMessage("Cannot execute JavaScript as the wrapped driver is not a JavascriptExecutor.")
+                    .that(driver)
+                    .satisfies(d -> d instanceof JavascriptExecutor);
+            return executeAndReturn(array -> ((JavascriptExecutor) driver).executeAsyncScript(script, array),
+                                    args);
+        });
+    }
+
+    private static void execute(Consumer<Object[]> consumer,
+                                Object... args) {
         if (null == args) {
             args = new Object[0];
         }
@@ -93,9 +125,31 @@ final class JavaScriptExecutorImpl<D extends WebDriver>
             int index = i;
             Object[] newArgs = Arrays.copyOf(args, args.length);
             if (arg instanceof AbstractPsElement<?, ?, ?, ?, ?, ?, ?>) {
+                ((AbstractPsElement<?, ?, ?, ?, ?, ?, ?>) arg).withWrappedElement().accept(e -> {
+                    newArgs[index] = e;
+                    execute(consumer, newArgs);
+                });
+            }
+        }
+        consumer.accept(args);
+    }
+
+    private static Object executeAndReturn(Function<Object[], Object> function,
+                                           Object... args) {
+        if (null == args) {
+            args = new Object[0];
+        }
+        for (int i = 0; i < args.length; i++) {
+            // We want any uses of elements in a scriptWithResult to be able to wait to be found
+            // and to also resist stale elements which means they need to be used from
+            // inside the element executor object.
+            Object arg = args[i];
+            int index = i;
+            Object[] newArgs = Arrays.copyOf(args, args.length);
+            if (arg instanceof AbstractPsElement<?, ?, ?, ?, ?, ?, ?>) {
                 return ((AbstractPsElement<?, ?, ?, ?, ?, ?, ?>) arg).withWrappedElement().apply(e -> {
                     newArgs[index] = e;
-                    return execute(function, newArgs);
+                    return executeAndReturn(function, newArgs);
                 });
             }
         }

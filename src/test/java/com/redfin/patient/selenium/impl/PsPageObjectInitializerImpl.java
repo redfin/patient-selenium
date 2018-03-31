@@ -16,12 +16,15 @@
 
 package com.redfin.patient.selenium.impl;
 
+import com.redfin.patient.selenium.AbstractPsBaseInitializedObject;
 import com.redfin.patient.selenium.AbstractPsPageObjectInitializer;
 import com.redfin.patient.selenium.FindsElements;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 import static org.mockito.Mockito.mock;
@@ -38,6 +41,18 @@ public final class PsPageObjectInitializerImpl
     public PsPageObjectInitializerImpl(PsDriverImpl driver,
                                        Class<PsElementLocatorImpl> elementLocatorClass) {
         super(driver, elementLocatorClass);
+    }
+
+    @Override
+    protected <T extends AbstractPsBaseInitializedObject<WebDriver, WebElement, PsConfigImpl, PsDriverImpl, PsElementLocatorBuilderImpl, PsElementLocatorImpl, PsElementImpl>> T buildPageOrWidget(Class<T> clazz) {
+        try {
+            Constructor<T> constructor = clazz.getConstructor();
+            constructor.setAccessible(true);
+            return constructor.newInstance();
+        } catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @Override
