@@ -225,7 +225,7 @@ public abstract class AbstractPsPageObjectInitializer<D extends WebDriver,
                 }
                 initializeObject(searchContext,
                                  (AbstractPsWidgetObject<D, W, C, P, B, L, E>) currentValue,
-                                 parentFields,
+                                 newParentFields,
                                  initializationCycleDetector);
             }
         } else if (elementLocatorClass.equals(field.getType())) {
