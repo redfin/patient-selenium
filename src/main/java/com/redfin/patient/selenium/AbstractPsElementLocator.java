@@ -25,7 +25,10 @@ import org.openqa.selenium.WebElement;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -68,6 +71,7 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
     private final Duration defaultNotPresentTimeout;
     private final Supplier<List<W>> elementSupplier;
     private final Predicate<W> elementFilter;
+    private final Map<Integer, SpecificPsElementRequestImpl<D, W, C, P, B, THIS, E>> specificElementRequestCache = new HashMap<>();
 
     /**
      * Create a new AbstractPsElementLocator with the given values.
@@ -292,34 +296,36 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
      * @throws IllegalArgumentException if index is negative.
      */
     public final SpecificPsElementRequestImpl<D, W, C, P, B, THIS, E> atIndex(int index) {
-        BiFunction<Integer, Duration, E> specificElementRequestFunction = (i, timeout) -> {
-            prepareDriver();
-            Supplier<W> elementSupplier = createElementSupplier(i, timeout);
-            String indexString = i == 0 ? "" : String.valueOf(i);
-            return buildElement(String.format(ELEMENT_FORMAT,
-                                              this,
-                                              indexString),
-                                elementSupplier.get(),
-                                elementSupplier);
-        };
-        BiFunction<Integer, Duration, Boolean> noMatchingElementFunction = (i, timeout) -> {
-            try {
-                wait.from(() -> elementSupplier.get()
-                                               .stream()
-                                               .noneMatch(elementFilter))
-                    .get(timeout);
-                // Empty list found, return true
-                return true;
-            } catch (PatientTimeoutException ignore) {
-                // Timeout reached but matching elements still found, return false
-                return false;
-            }
-        };
-        return new SpecificPsElementRequestImpl<>(specificElementRequestFunction,
-                                                  noMatchingElementFunction,
-                                                  index,
-                                                  defaultTimeout,
-                                                  defaultNotPresentTimeout);
+        return specificElementRequestCache.computeIfAbsent(index, it -> {
+            BiFunction<Integer, Duration, E> specificElementRequestFunction = (i, timeout) -> {
+                prepareDriver();
+                Supplier<W> elementSupplier = createElementSupplier(i, timeout);
+                String indexString = i == 0 ? "" : String.valueOf(i);
+                return buildElement(String.format(ELEMENT_FORMAT,
+                                                  this,
+                                                  indexString),
+                                    elementSupplier.get(),
+                                    elementSupplier);
+            };
+            BiFunction<Integer, Duration, Boolean> noMatchingElementFunction = (i, timeout) -> {
+                try {
+                    wait.from(() -> elementSupplier.get()
+                                                   .stream()
+                                                   .noneMatch(elementFilter))
+                        .get(timeout);
+                    // Empty list found, return true
+                    return true;
+                } catch (PatientTimeoutException ignore) {
+                    // Timeout reached but matching elements still found, return false
+                    return false;
+                }
+            };
+            return new SpecificPsElementRequestImpl<>(specificElementRequestFunction,
+                                                      noMatchingElementFunction,
+                                                      it,
+                                                      defaultTimeout,
+                                                      defaultNotPresentTimeout);
+        });
     }
 
     /**
@@ -342,6 +348,18 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
     @Override
     public final E get(Duration timeout) {
         return atIndex(0).get(timeout);
+    }
+
+    @Override
+    public boolean isPresent() {
+        return isPresent(defaultTimeout);
+    }
+
+    @Override
+    public boolean isPresent(Duration timeout) {
+        AtomicBoolean present = new AtomicBoolean(false);
+        ifPresent(e -> present.set(true));
+        return present.get();
     }
 
     /**

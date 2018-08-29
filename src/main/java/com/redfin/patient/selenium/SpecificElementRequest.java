@@ -41,6 +41,28 @@ public interface SpecificElementRequest<D extends WebDriver,
      */
     E get(Duration timeout);
 
+    /**
+     * The same as calling {@link #ifPresent(Consumer)} except that it returns a boolean
+     * true if an element was found within the default timeout or false if there wasn't.
+     *
+     * @return true if an element was found.
+     */
+    boolean isPresent();
+
+    /**
+     * The same as calling {@link #ifPresent(Consumer, Duration)} except that it returns a boolean
+     * true if an element was found within the default timeout or false if there wasn't.
+     *
+     * @param timeout  the {@link Duration} timeout to keep trying to check that there
+     *                 are matching elements.
+     *                 Note that a duration of 0 means try to locate an element once.
+     *                 May not be null or negative.
+     *
+     * @return true if an element was found.
+     *
+     * @throws IllegalArgumentException if timeout is null or negative.
+     */
+    boolean isPresent(Duration timeout);
 
     /**
      * Check if there are any elements that can be found (e.g. like
@@ -74,8 +96,8 @@ public interface SpecificElementRequest<D extends WebDriver,
      * @param consumer the {@link Consumer} to be executed if there is a matching element found.
      *                 May not be null.
      * @param timeout  the {@link Duration} timeout to keep trying to check that there
-     *                 are no matching elements.
-     *                 Note that a duration of 0 means try to locate an element one.
+     *                 are any matching elements.
+     *                 Note that a duration of 0 means try to locate an element once.
      *                 May not be null or negative.
      *
      * @return an {@link OptionalExecutor} for this elements that will run the
@@ -116,7 +138,7 @@ public interface SpecificElementRequest<D extends WebDriver,
      *                 May not be null.
      * @param timeout  the {@link Duration} timeout to keep trying to check that there
      *                 are no matching elements.
-     *                 Note that a duration of 0 means try to locate an element one.
+     *                 Note that a duration of 0 means try to locate an element once.
      *                 May not be null or negative.
      *
      * @return an {@link OptionalExecutor} for this elements that will run the

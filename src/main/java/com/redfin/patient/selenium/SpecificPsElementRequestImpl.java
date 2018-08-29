@@ -21,6 +21,9 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
@@ -54,6 +57,7 @@ public final class SpecificPsElementRequestImpl<D extends WebDriver,
     private final int index;
     private final Duration defaultTimeout;
     private final Duration defaultNotPresentTimeout;
+    private final Map<Duration, E> elementCache = new HashMap<>();
 
     /**
      * Creates a new SpecificPsElementRequestImpl instance with the given values.
@@ -122,11 +126,22 @@ public final class SpecificPsElementRequestImpl<D extends WebDriver,
         validate().withMessage("Cannot locate a specific element with a null or negative timeout.")
                   .that(timeout)
                   .isAtLeast(Duration.ZERO);
-        return expect().withMessage("Received a null element object from the specific element request function.")
-                       .that(specificElementRequestFunction.apply(index, timeout))
-                       .isNotNull();
+        return elementCache.computeIfAbsent(timeout, duration -> expect().withMessage("Received a null element object from the specific element request function.")
+                                                                         .that(specificElementRequestFunction.apply(index, duration))
+                                                                         .isNotNull());
     }
 
+    @Override
+    public boolean isPresent() {
+        return isPresent(defaultTimeout);
+    }
+
+    @Override
+    public boolean isPresent(Duration timeout) {
+        AtomicBoolean present = new AtomicBoolean(false);
+        ifPresent(e -> present.set(true));
+        return present.get();
+    }
 
     @Override
     public OptionalExecutor ifPresent(Consumer<E> consumer) {
