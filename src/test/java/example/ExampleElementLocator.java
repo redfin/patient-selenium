@@ -19,11 +19,13 @@ package example;
 import com.redfin.patience.PatientWait;
 import com.redfin.patient.selenium.AbstractPsElementLocator;
 import com.redfin.patient.selenium.DefaultElementExecutor;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -45,7 +47,8 @@ public class ExampleElementLocator
                                  Duration defaultTimeout,
                                  Duration defaultNotPresentTimeout,
                                  Supplier<List<WebElement>> elementSupplier,
-                                 Predicate<WebElement> elementFilter) {
+                                 Predicate<WebElement> elementFilter,
+                                 Function<By, List<WebElement>> baseElementLocatorFunction) {
         super(description,
               config,
               driver,
@@ -53,7 +56,16 @@ public class ExampleElementLocator
               defaultTimeout,
               defaultNotPresentTimeout,
               elementSupplier,
-              elementFilter);
+              elementFilter,
+              baseElementLocatorFunction);
+    }
+
+    @Override
+    public ExampleElementLocatorBuilder builder() {
+        return new ExampleElementLocatorBuilder(getDescription(),
+                                                getConfig(),
+                                                getDriver(),
+                                                getBaseSeleniumLocatorFunction());
     }
 
     @Override

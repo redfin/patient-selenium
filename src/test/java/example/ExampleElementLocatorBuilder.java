@@ -61,7 +61,8 @@ public class ExampleElementLocatorBuilder
                                          getDefaultTimeout(),
                                          getDefaultNotPresentTimeout(),
                                          elementSupplier,
-                                         getElementFilter());
+                                         getElementFilter(),
+                                         getBaseSeleniumLocatorFunction());
     }
 
     public ExampleElementLocator byId(String id) {

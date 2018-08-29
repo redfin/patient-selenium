@@ -18,7 +18,7 @@ Via maven:
 <dependency>
     <groupId>com.redfin</groupId>
     <artifactId>patient-selenium</artifactId>
-    <version>1.5.0</version>
+    <version>1.5.1</version>
 </dependency>
 ```
 

@@ -30,12 +30,15 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -73,7 +76,8 @@ final class AbstractPsElementLocatorTest
                            mock(Duration.class),
                            mock(Duration.class),
                            mock(Supplier.class),
-                           mock(Predicate.class));
+                           mock(Predicate.class),
+                           mock(Function.class));
     }
 
     private PsElementLocatorImpl getInstance(String description,
@@ -83,7 +87,8 @@ final class AbstractPsElementLocatorTest
                                              Duration defaultTimeout,
                                              Duration defaultNotPresentTimeout,
                                              Supplier<List<WebElement>> elementSupplier,
-                                             Predicate<WebElement> elementFilter) {
+                                             Predicate<WebElement> elementFilter,
+                                             Function<By, List<WebElement>> baseElementLocatorFunction) {
         return new PsElementLocatorImpl(description,
                                         config,
                                         driver,
@@ -91,7 +96,8 @@ final class AbstractPsElementLocatorTest
                                         defaultTimeout,
                                         defaultNotPresentTimeout,
                                         elementSupplier,
-                                        elementFilter);
+                                        elementFilter,
+                                        baseElementLocatorFunction);
     }
 
     @SuppressWarnings("unchecked")
@@ -115,7 +121,8 @@ final class AbstractPsElementLocatorTest
                                           Duration.ZERO,
                                           Duration.ZERO,
                                           mock(Supplier.class),
-                                          mock(Predicate.class)),
+                                          mock(Predicate.class),
+                                          mock(Function.class)),
                              Arguments.of("description",
                                           mock(PsConfigImpl.class),
                                           mock(PsDriverImpl.class),
@@ -123,7 +130,8 @@ final class AbstractPsElementLocatorTest
                                           Duration.ofMillis(500),
                                           Duration.ofMillis(500),
                                           mock(Supplier.class),
-                                          mock(Predicate.class)));
+                                          mock(Predicate.class),
+                                          mock(Function.class)));
         }
     }
 
@@ -139,7 +147,8 @@ final class AbstractPsElementLocatorTest
                                           Duration.ZERO,
                                           Duration.ZERO,
                                           mock(Supplier.class),
-                                          mock(Predicate.class)),
+                                          mock(Predicate.class),
+                                          mock(Function.class)),
                              Arguments.of("",
                                           mock(PsConfigImpl.class),
                                           mock(PsDriverImpl.class),
@@ -147,7 +156,8 @@ final class AbstractPsElementLocatorTest
                                           Duration.ZERO,
                                           Duration.ZERO,
                                           mock(Supplier.class),
-                                          mock(Predicate.class)),
+                                          mock(Predicate.class),
+                                          mock(Function.class)),
                              Arguments.of("description",
                                           null,
                                           mock(PsDriverImpl.class),
@@ -155,7 +165,8 @@ final class AbstractPsElementLocatorTest
                                           Duration.ZERO,
                                           Duration.ZERO,
                                           mock(Supplier.class),
-                                          mock(Predicate.class)),
+                                          mock(Predicate.class),
+                                          mock(Function.class)),
                              Arguments.of("description",
                                           mock(PsConfigImpl.class),
                                           null,
@@ -163,7 +174,8 @@ final class AbstractPsElementLocatorTest
                                           Duration.ZERO,
                                           Duration.ZERO,
                                           mock(Supplier.class),
-                                          mock(Predicate.class)),
+                                          mock(Predicate.class),
+                                          mock(Function.class)),
                              Arguments.of("description",
                                           mock(PsConfigImpl.class),
                                           mock(PsDriverImpl.class),
@@ -171,7 +183,8 @@ final class AbstractPsElementLocatorTest
                                           Duration.ZERO,
                                           Duration.ZERO,
                                           mock(Supplier.class),
-                                          mock(Predicate.class)),
+                                          mock(Predicate.class),
+                                          mock(Function.class)),
                              Arguments.of("description",
                                           mock(PsConfigImpl.class),
                                           mock(PsDriverImpl.class),
@@ -179,7 +192,8 @@ final class AbstractPsElementLocatorTest
                                           null,
                                           Duration.ZERO,
                                           mock(Supplier.class),
-                                          mock(Predicate.class)),
+                                          mock(Predicate.class),
+                                          mock(Function.class)),
                              Arguments.of("description",
                                           mock(PsConfigImpl.class),
                                           mock(PsDriverImpl.class),
@@ -187,7 +201,8 @@ final class AbstractPsElementLocatorTest
                                           Duration.ofMillis(-500),
                                           Duration.ZERO,
                                           mock(Supplier.class),
-                                          mock(Predicate.class)),
+                                          mock(Predicate.class),
+                                          mock(Function.class)),
                              Arguments.of("description",
                                           mock(PsConfigImpl.class),
                                           mock(PsDriverImpl.class),
@@ -195,7 +210,8 @@ final class AbstractPsElementLocatorTest
                                           Duration.ZERO,
                                           null,
                                           mock(Supplier.class),
-                                          mock(Predicate.class)),
+                                          mock(Predicate.class),
+                                          mock(Function.class)),
                              Arguments.of("description",
                                           mock(PsConfigImpl.class),
                                           mock(PsDriverImpl.class),
@@ -203,7 +219,8 @@ final class AbstractPsElementLocatorTest
                                           Duration.ZERO,
                                           Duration.ofMillis(-500),
                                           null,
-                                          mock(Predicate.class)),
+                                          mock(Predicate.class),
+                                          mock(Function.class)),
                              Arguments.of("description",
                                           mock(PsConfigImpl.class),
                                           mock(PsDriverImpl.class),
@@ -211,6 +228,16 @@ final class AbstractPsElementLocatorTest
                                           Duration.ZERO,
                                           Duration.ZERO,
                                           mock(Supplier.class),
+                                          null,
+                                          mock(Function.class)),
+                             Arguments.of("description",
+                                          mock(PsConfigImpl.class),
+                                          mock(PsDriverImpl.class),
+                                          mock(PatientWait.class),
+                                          Duration.ZERO,
+                                          Duration.ZERO,
+                                          mock(Supplier.class),
+                                          mock(Predicate.class),
                                           null));
         }
     }
@@ -233,7 +260,8 @@ final class AbstractPsElementLocatorTest
                                                       Duration defaultTimeout,
                                                       Duration defaultNotPresentTimeout,
                                                       Supplier<List<WebElement>> elementSupplier,
-                                                      Predicate<WebElement> elementFilter) {
+                                                      Predicate<WebElement> elementFilter,
+                                                      Function<By, List<WebElement>> baseElementLocatorFunction) {
             try {
                 Assertions.assertNotNull(getInstance(description,
                                                      config,
@@ -242,7 +270,8 @@ final class AbstractPsElementLocatorTest
                                                      defaultTimeout,
                                                      defaultNotPresentTimeout,
                                                      elementSupplier,
-                                                     elementFilter),
+                                                     elementFilter,
+                                                     baseElementLocatorFunction),
                                          "Should be able to instantiate an instance with valid arguments.");
             } catch (Throwable thrown) {
                 Assertions.fail("Should have been able to instantiate with valid arguments but caught: " + thrown);
@@ -259,7 +288,8 @@ final class AbstractPsElementLocatorTest
                                            Duration defaultTimeout,
                                            Duration defaultNotPresentTimeout,
                                            Supplier<List<WebElement>> elementSupplier,
-                                           Predicate<WebElement> elementFilter) {
+                                           Predicate<WebElement> elementFilter,
+                                           Function<By, List<WebElement>> baseElementLocatorFunction) {
             Assertions.assertThrows(IllegalArgumentException.class,
                                     () -> getInstance(description,
                                                       config,
@@ -268,7 +298,8 @@ final class AbstractPsElementLocatorTest
                                                       defaultTimeout,
                                                       defaultNotPresentTimeout,
                                                       elementSupplier,
-                                                      elementFilter),
+                                                      elementFilter,
+                                                      baseElementLocatorFunction),
                                     "Should have thrown an exception for invalid arguments.");
         }
     }
@@ -288,6 +319,7 @@ final class AbstractPsElementLocatorTest
             Duration defaultNotPresentTimeout = Duration.ofMillis(500);
             Supplier<List<WebElement>> elementSupplier = () -> null;
             Predicate<WebElement> elementFilter = e -> true;
+            Function<By, List<WebElement>> baseElementLocatorFunction = by -> new ArrayList<>();
             PsElementLocatorImpl el = getInstance(description,
                                                   config,
                                                   driver,
@@ -295,7 +327,8 @@ final class AbstractPsElementLocatorTest
                                                   defaultTimeout,
                                                   defaultNotPresentTimeout,
                                                   elementSupplier,
-                                                  elementFilter);
+                                                  elementFilter,
+                                                  baseElementLocatorFunction);
             Assertions.assertAll(() -> Assertions.assertSame(description,
                                                              el.getDescription(),
                                                              "Should return the given description."),
@@ -319,7 +352,10 @@ final class AbstractPsElementLocatorTest
                                                              "Should return the given element supplier."),
                                  () -> Assertions.assertSame(elementFilter,
                                                              el.getElementFilter(),
-                                                             "Should return the given element filter."));
+                                                             "Should return the given element filter."),
+                                 () -> Assertions.assertSame(baseElementLocatorFunction,
+                                                             el.getBaseSeleniumLocatorFunction(),
+                                                             "Should return the given selenium locator function."));
         }
 
         @Nested

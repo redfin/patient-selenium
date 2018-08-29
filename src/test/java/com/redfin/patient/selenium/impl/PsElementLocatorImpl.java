@@ -18,11 +18,13 @@ package com.redfin.patient.selenium.impl;
 
 import com.redfin.patience.PatientWait;
 import com.redfin.patient.selenium.AbstractPsElementLocator;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -47,7 +49,8 @@ public final class PsElementLocatorImpl
              mock(Duration.class),
              mock(Duration.class),
              elementSupplier,
-             mock(Predicate.class));
+             mock(Predicate.class),
+             mock(Function.class));
     }
 
     public PsElementLocatorImpl(String description,
@@ -57,7 +60,8 @@ public final class PsElementLocatorImpl
                                 Duration defaultTimeout,
                                 Duration defaultNotPresentTimeout,
                                 Supplier<List<WebElement>> elementSupplier,
-                                Predicate<WebElement> elementFilter) {
+                                Predicate<WebElement> elementFilter,
+                                Function<By, List<WebElement>> baseLocatorFunction) {
         super(description,
               config,
               driver,
@@ -65,7 +69,16 @@ public final class PsElementLocatorImpl
               defaultTimeout,
               defaultNotPresentTimeout,
               elementSupplier,
-              elementFilter);
+              elementFilter,
+              baseLocatorFunction);
+    }
+
+    @Override
+    public PsElementLocatorBuilderImpl builder() {
+        return new PsElementLocatorBuilderImpl(getDescription(),
+                                               getConfig(),
+                                               getDriver(),
+                                               getBaseSeleniumLocatorFunction());
     }
 
     @Override

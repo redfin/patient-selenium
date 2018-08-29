@@ -18,6 +18,7 @@ package com.redfin.patient.selenium;
 
 import com.redfin.patience.PatientWait;
 import com.redfin.patience.exceptions.PatientTimeoutException;
+import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -31,6 +32,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -71,33 +73,38 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
     private final Duration defaultNotPresentTimeout;
     private final Supplier<List<W>> elementSupplier;
     private final Predicate<W> elementFilter;
+    private final Function<By, List<W>> baseSeleniumLocatorFunction;
+
     private final Map<Integer, SpecificPsElementRequestImpl<D, W, C, P, B, THIS, E>> specificElementRequestCache = new HashMap<>();
 
     /**
      * Create a new AbstractPsElementLocator with the given values.
      *
-     * @param description              the string description of the element locator.
-     *                                 May not be empty or null.
-     * @param config                   the {@link AbstractPsConfig} for this element locator.
-     *                                 May not be null.
-     * @param driver                   the {@link AbstractPsDriver} for this element locator.
-     *                                 May not be null.
-     * @param wait                     the {@link PatientWait} for this element locator.
-     *                                 may not be null.
-     * @param defaultTimeout           the default {@link Duration} timeout when locating an
-     *                                 element you expect to be present.
-     *                                 May not be null or negative.
-     * @param defaultNotPresentTimeout the default {@link Duration} timeout when trying
-     *                                 to check that an element is not present that you
-     *                                 don't expect to be there.
-     *                                 May not be null or negative.
-     * @param elementSupplier          the {@link Supplier} of a list of {@link WebElement}s.
-     *                                 An exception will be thrown later if it ever returns a null list.
-     *                                 May not be null.
-     * @param elementFilter            the {@link Predicate} to use to check elements returned from the
-     *                                 supplier. Elements that don't pass the predicate won't be considered
-     *                                 a valid match.
-     *                                 May not be null.
+     * @param description                 the string description of the element locator.
+     *                                    May not be empty or null.
+     * @param config                      the {@link AbstractPsConfig} for this element locator.
+     *                                    May not be null.
+     * @param driver                      the {@link AbstractPsDriver} for this element locator.
+     *                                    May not be null.
+     * @param wait                        the {@link PatientWait} for this element locator.
+     *                                    may not be null.
+     * @param defaultTimeout              the default {@link Duration} timeout when locating an
+     *                                    element you expect to be present.
+     *                                    May not be null or negative.
+     * @param defaultNotPresentTimeout    the default {@link Duration} timeout when trying
+     *                                    to check that an element is not present that you
+     *                                    don't expect to be there.
+     *                                    May not be null or negative.
+     * @param elementSupplier             the {@link Supplier} of a list of {@link WebElement}s.
+     *                                    An exception will be thrown later if it ever returns a null list.
+     *                                    May not be null.
+     * @param elementFilter               the {@link Predicate} to use to check elements returned from the
+     *                                    supplier. Elements that don't pass the predicate won't be considered
+     *                                    a valid match.
+     *                                    May not be null.
+     * @param baseSeleniumLocatorFunction the function that takes in a {@link By} and returns a list of
+     *                                    specific web elements.
+     *                                    May not be null
      *
      * @throws IllegalArgumentException if any argument is null, if the description is empty,
      *                                  or if defaultTimeout or defaultNotPresentTimeout are negative.
@@ -109,7 +116,8 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
                                     Duration defaultTimeout,
                                     Duration defaultNotPresentTimeout,
                                     Supplier<List<W>> elementSupplier,
-                                    Predicate<W> elementFilter) {
+                                    Predicate<W> elementFilter,
+                                    Function<By, List<W>> baseSeleniumLocatorFunction) {
         super(description, config);
         this.driver = validate().withMessage("Cannot use a null driver.")
                                 .that(driver)
@@ -129,7 +137,16 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
         this.elementFilter = validate().withMessage("Cannot use a null element filter.")
                                        .that(elementFilter)
                                        .isNotNull();
+        this.baseSeleniumLocatorFunction = validate().withMessage("Cannot use a null selenium locator function")
+                                                     .that(baseSeleniumLocatorFunction)
+                                                     .isNotNull();
     }
+
+    /**
+     * @return a new element locator builder {@link B} that is set to the same defaults as
+     * this locator.
+     */
+    public abstract B builder();
 
     /**
      * @param description     the String description of the element.
@@ -235,6 +252,13 @@ public abstract class AbstractPsElementLocator<D extends WebDriver,
      */
     protected final Predicate<W> getElementFilter() {
         return elementFilter;
+    }
+
+    /**
+     * @return the {@link Function} used to locate a list of elements with a selenium by.
+     */
+    protected final Function<By, List<W>> getBaseSeleniumLocatorFunction() {
+        return baseSeleniumLocatorFunction;
     }
 
     /**

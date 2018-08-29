@@ -24,6 +24,7 @@ import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.function.Function;
@@ -57,7 +58,8 @@ final class ElementLocatorTestHelper {
                                         timeout,
                                         notPresentTimeout,
                                         () -> Arrays.asList(element1, element2, element3),
-                                        WebElement::isDisplayed);
+                                        WebElement::isDisplayed,
+                                        by -> new ArrayList<>());
     }
 
     @SuppressWarnings("unchecked")
@@ -72,7 +74,8 @@ final class ElementLocatorTestHelper {
                                         timeout,
                                         Duration.ZERO,
                                         Collections::emptyList,
-                                        WebElement::isDisplayed);
+                                        WebElement::isDisplayed,
+                                        by -> new ArrayList<>());
     }
 
     private ElementLocatorTestHelper() {
