@@ -1,5 +1,6 @@
 package com.redfin.selenium;
 
+import com.redfin.patience.PatientWait;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
@@ -7,9 +8,13 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.time.Duration;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
+
+import static org.mockito.Mockito.mock;
 
 @DisplayName("An AbstractPageObjectInitializer")
 final class AbstractPageObjectInitializerTest {
@@ -125,6 +130,15 @@ final class AbstractPageObjectInitializerTest {
         return new TestPageObjectInitializer();
     }
 
+    @SuppressWarnings("unchecked")
+    private static TestElementFactory getFactory() {
+        return new TestElementFactory("defaultDescription",
+                                      mock(PatientWait.class),
+                                      mock(Predicate.class),
+                                      Duration.ZERO,
+                                      mock(Supplier.class));
+    }
+
     private static class ThrowingPageObjectInitializer
                  extends AbstractPageObjectInitializer<TestElementFactory, TestWidget> {
 
@@ -159,7 +173,7 @@ final class AbstractPageObjectInitializerTest {
 
         private final TestElementFactory fooA = null;
 
-        private final TestElementFactory notToBeInitialized = new TestElementFactory();
+        private final TestElementFactory notToBeInitialized = getFactory();
 
         private final WidgetA widgetA = new WidgetA();
 
@@ -177,7 +191,7 @@ final class AbstractPageObjectInitializerTest {
 
         private final TestElementFactory fooB = null;
 
-        private final TestElementFactory notToBeInitialized = new TestElementFactory();
+        private final TestElementFactory notToBeInitialized = getFactory();
 
         private final PageC pageC = new PageC();
     }
@@ -186,7 +200,7 @@ final class AbstractPageObjectInitializerTest {
 
         private final TestElementFactory fooC = null;
 
-        private final TestElementFactory notToBeInitialized = new TestElementFactory();
+        private final TestElementFactory notToBeInitialized = getFactory();
 
         private final PageD pageD = new PageD();
 

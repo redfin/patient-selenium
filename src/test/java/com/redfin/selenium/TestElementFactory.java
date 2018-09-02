@@ -11,21 +11,10 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import static org.mockito.Mockito.mock;
-
 final class TestElementFactory
     extends AbstractElementFactory<WebElement, TestElement> {
 
     private List<Field> fieldsList = null;
-
-    @SuppressWarnings("unchecked")
-    public TestElementFactory() {
-        this("default description",
-             mock(PatientWait.class),
-             mock(Predicate.class),
-             mock(Duration.class),
-             mock(Supplier.class));
-    }
 
     public TestElementFactory(String description,
                               PatientWait wait,
