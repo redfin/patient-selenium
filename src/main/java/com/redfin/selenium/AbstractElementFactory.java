@@ -141,7 +141,7 @@ public abstract class AbstractElementFactory<W extends WebElement,
     protected abstract E buildElement(String elementDescription,
                                       Function<Duration, Boolean> notPresentFunction,
                                       Supplier<Optional<W>> elementSupplier,
-                                      WebElement initialElement);
+                                      W initialElement);
 
     /**
      * @return the description for this element factory.
