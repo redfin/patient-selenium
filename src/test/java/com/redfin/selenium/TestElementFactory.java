@@ -3,6 +3,7 @@ package com.redfin.selenium;
 import com.redfin.patience.PatientWait;
 import org.openqa.selenium.WebElement;
 
+import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
@@ -10,8 +11,21 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import static org.mockito.Mockito.mock;
+
 final class TestElementFactory
     extends AbstractElementFactory<WebElement, TestElement> {
+
+    private List<Field> fieldsList = null;
+
+    @SuppressWarnings("unchecked")
+    public TestElementFactory() {
+        this("default description",
+             mock(PatientWait.class),
+             mock(Predicate.class),
+             mock(Duration.class),
+             mock(Supplier.class));
+    }
 
     public TestElementFactory(String description,
                               PatientWait wait,
@@ -31,5 +45,13 @@ final class TestElementFactory
                                notPresentFunction,
                                elementSupplier,
                                initialElement);
+    }
+
+    public void setFieldsList(List<Field> fieldsList) {
+        this.fieldsList = fieldsList;
+    }
+
+    public List<Field> getFieldsList() {
+        return fieldsList;
     }
 }

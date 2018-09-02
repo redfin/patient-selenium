@@ -21,7 +21,7 @@ Via maven:
 <dependency>
     <groupId>com.redfin</groupId>
     <artifactId>patient-selenium</artifactId>
-    <version>2.0.1-RC1</version>
+    <version>2.0.2-RC1</version>
 </dependency>
 ```
 
@@ -71,6 +71,8 @@ elementFactory.getAll().size();
 
 The `AbstractPageObjectInitializer` type is the base class for an instance that will be used to initialize fields
 of an already created instance of a specific type. It is intended to be used to create concrete `AbstractElementFactory`
-instances on a page object based upon custom annotations on the fields, but that is entirely customizable. Out of the
-box it simply has an abstract method that it gives the list of Fields that are found while recursively initializing
-a given page object and the method simply returns an instance of the given type.
+instances on a page object based upon custom annotations on the fields, but that is entirely customizable. There are two
+types that it interacts with (both defined by an interface). Any field in the root, or in the ecursively initialized tree,
+that is a `PageObject` will be included in the initialization. Any field that is of the type `WidgetPageObject` will be
+both considered a page object and initialized, but will have the desired element factory given to the set widget object
+method as well. If a field is of those two page object types and is null, however, it will be ignored.

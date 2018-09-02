@@ -7,8 +7,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 @DisplayName("An AbstractPageObjectInitializer")
 final class AbstractPageObjectInitializerTest {
@@ -26,14 +27,6 @@ final class AbstractPageObjectInitializerTest {
         void testCanInstantiate() {
             Assertions.assertNotNull(getInstance(),
                                      "Should be able to instantiate a page object initializer");
-        }
-
-        @Test
-        @DisplayName("throws exception for null class object")
-        void testThrowsExceptionForNullClass() {
-            Assertions.assertThrows(IllegalArgumentException.class,
-                                    () -> new TestPageObjectInitializer(null),
-                                    "Should throw an exception for a null class type to the page object initializer constructor");
         }
     }
 
@@ -57,6 +50,8 @@ final class AbstractPageObjectInitializerTest {
             Assumptions.assumeTrue(null == pageA.superFoo);
             Assumptions.assumeTrue(null == pageA.fooA);
             Assumptions.assumeTrue(null != pageA.notToBeInitialized);
+            Assumptions.assumeTrue(null != pageA.widgetA);
+            Assumptions.assumeTrue(null == pageA.nullWidget);
             Assumptions.assumeTrue(null != pageA.pageB);
             Assumptions.assumeTrue(null == pageA.pageB.fooB);
             Assumptions.assumeTrue(null != pageA.pageB.notToBeInitialized);
@@ -68,9 +63,9 @@ final class AbstractPageObjectInitializerTest {
             // Create a cycle in the object graph to make sure cycles don't cause an infinite loop
             pageA.pageB.pageC.pageA = pageA;
             // Grab references to the non-null field values
-            Foo fooA = pageA.notToBeInitialized;
-            Foo fooB = pageA.pageB.notToBeInitialized;
-            Foo fooC = pageA.pageB.pageC.notToBeInitialized;
+            TestElementFactory fooA = pageA.notToBeInitialized;
+            TestElementFactory fooB = pageA.pageB.notToBeInitialized;
+            TestElementFactory fooC = pageA.pageB.pageC.notToBeInitialized;
             PageB pageB = pageA.pageB;
             PageC pageC = pageA.pageB.pageC;
             // Initialize the page object
@@ -81,17 +76,44 @@ final class AbstractPageObjectInitializerTest {
                                  () -> Assertions.assertSame(fooA, pageA.notToBeInitialized),
                                  () -> Assertions.assertSame(fooB, pageA.pageB.notToBeInitialized),
                                  () -> Assertions.assertSame(fooC, pageA.pageB.pageC.notToBeInitialized),
-                                 () -> Assertions.assertNull(fooA.fieldsList),
-                                 () -> Assertions.assertNull(fooB.fieldsList),
-                                 () -> Assertions.assertNull(fooC.fieldsList),
+                                 () -> Assertions.assertNull(fooA.getFieldsList()),
+                                 () -> Assertions.assertNull(fooB.getFieldsList()),
+                                 () -> Assertions.assertNull(fooC.getFieldsList()),
+                                 () -> Assertions.assertNull(pageA.nullWidget),
                                  () -> Assertions.assertNotNull(pageA.fooA),
                                  () -> Assertions.assertNotNull(pageA.superFoo),
+                                 () -> Assertions.assertNotNull(pageA.widgetA.widgetFoo),
+                                 () -> Assertions.assertNotNull(pageA.widgetA.getWidgetObject()),
                                  () -> Assertions.assertNotNull(pageA.pageB.fooB),
                                  () -> Assertions.assertNotNull(pageA.pageB.pageC),
-                                 () -> Assertions.assertEquals(1, pageA.fooA.fieldsList.size()),
-                                 () -> Assertions.assertEquals(1, pageA.superFoo.fieldsList.size()),
-                                 () -> Assertions.assertEquals(2, pageA.pageB.fooB.fieldsList.size()),
-                                 () -> Assertions.assertEquals(3, pageA.pageB.pageC.fooC.fieldsList.size()));
+                                 () -> Assertions.assertEquals(1, pageA.fooA.getFieldsList().size()),
+                                 () -> Assertions.assertEquals(1, pageA.superFoo.getFieldsList().size()),
+                                 () -> Assertions.assertEquals(1, pageA.widgetA.getWidgetObject().getFieldsList().size()),
+                                 () -> Assertions.assertEquals(2, pageA.widgetA.widgetFoo.getFieldsList().size()),
+                                 () -> Assertions.assertEquals(2, pageA.pageB.fooB.getFieldsList().size()),
+                                 () -> Assertions.assertEquals(3, pageA.pageB.pageC.fooC.getFieldsList().size()),
+                                 () -> Assertions.assertNull(pageA.pageB.pageC.pageD.fooD));
+        }
+
+        @Test
+        @DisplayName("propagates a thrown page object exception")
+        void testPropagatesPageObjectException() {
+            String message = "whoops";
+            Throwable thrown = Assertions.assertThrows(PageObjectInitializationException.class,
+                                                       () -> new ThrowingPageObjectInitializer(() -> new PageObjectInitializationException(message)).initialize(new PageA()),
+                                                       "Should propagate a page object exception");
+            Assertions.assertNull(thrown.getCause(), "The thrown exception shouldn't have a set cause");
+            Assertions.assertEquals(message, thrown.getMessage(), "The thrown exception should have the given message");
+        }
+
+        @Test
+        @DisplayName("wraps thrown exceptions in a PageObjectInitializationException")
+        void testWrapsUnexpectedExceptions() {
+            RuntimeException cause = new RuntimeException("message");
+            Throwable thrown = Assertions.assertThrows(PageObjectInitializationException.class,
+                                                       () -> new ThrowingPageObjectInitializer(() -> cause).initialize(new PageA()),
+                                                       "Should throw a page object exception");
+            Assertions.assertEquals(cause, thrown.getCause(), "The thrown exception should have the expected cause.");
         }
     }
 
@@ -100,62 +122,83 @@ final class AbstractPageObjectInitializerTest {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     private static TestPageObjectInitializer getInstance() {
-        return new TestPageObjectInitializer(Foo.class);
+        return new TestPageObjectInitializer();
     }
 
-    private static final class TestPageObjectInitializer
-                       extends AbstractPageObjectInitializer<Foo> {
+    private static class ThrowingPageObjectInitializer
+                 extends AbstractPageObjectInitializer<TestElementFactory, TestWidget> {
 
-        private TestPageObjectInitializer(Class<Foo> fooClass) {
-            super(fooClass);
+        private final Supplier<RuntimeException> exceptionSupplier;
+
+        private ThrowingPageObjectInitializer(Supplier<RuntimeException> exceptionSupplier) {
+            this.exceptionSupplier = exceptionSupplier;
         }
 
         @Override
-        protected Foo buildValue(List<Field> fields) {
-            return new Foo(fields);
+        protected Class<TestElementFactory> getElementFactoryClass() {
+            return TestElementFactory.class;
+        }
+
+        @Override
+        protected Class<TestWidget> getWidgetClass() {
+            return TestWidget.class;
+        }
+
+        @Override
+        protected TestElementFactory buildValue(List<Field> fields) {
+            throw exceptionSupplier.get();
         }
     }
 
-    private static final class Foo {
+    private static class SuperPageA implements PageObject {
 
-        private final List<Field> fieldsList;
-
-        private Foo(List<Field> fieldsList) {
-            this.fieldsList = (null == fieldsList) ? null : new ArrayList<>(fieldsList);
-        }
-    }
-
-    private static class SuperPageA {
-
-        final Foo superFoo = null;
+        final TestElementFactory superFoo = null;
     }
 
     private static final class PageA extends SuperPageA {
 
-        private final Foo fooA = null;
+        private final TestElementFactory fooA = null;
 
-        private final Foo notToBeInitialized = new Foo(null);
+        private final TestElementFactory notToBeInitialized = new TestElementFactory();
+
+        private final WidgetA widgetA = new WidgetA();
+
+        private final WidgetA nullWidget = null;
 
         private final PageB pageB = new PageB();
     }
 
-    private static final class PageB {
+    private static final class WidgetA extends TestWidget {
 
-        private final Foo fooB = null;
+        private final TestElementFactory widgetFoo = null;
+    }
 
-        private final Foo notToBeInitialized = new Foo(null);
+    private static final class PageB implements PageObject {
+
+        private final TestElementFactory fooB = null;
+
+        private final TestElementFactory notToBeInitialized = new TestElementFactory();
 
         private final PageC pageC = new PageC();
     }
 
-    private static final class PageC {
+    private static final class PageC implements PageObject {
 
-        private final Foo fooC = null;
+        private final TestElementFactory fooC = null;
 
-        private final Foo notToBeInitialized = new Foo(null);
+        private final TestElementFactory notToBeInitialized = new TestElementFactory();
+
+        private final PageD pageD = new PageD();
 
         private PageA pageA = null;
 
         private PageA nullPage = null;
+    }
+
+    private static final class PageD {
+
+        // Not a PageObject interface class so this should stay null
+
+        private final TestElementFactory fooD = null;
     }
 }

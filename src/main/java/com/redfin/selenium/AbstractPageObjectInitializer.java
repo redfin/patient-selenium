@@ -13,28 +13,15 @@ import static com.redfin.validity.Validity.validate;
  * Base class that handles the initialization of page objects. It is intended
  * to be be extended by a concrete type that simply knows how to build concrete
  * instances of the type T to be initialized.
- *
+ * <p>
  * Note that this class, like other classes in this library, is not intended for multi threaded use.
  *
- * @param <T> the type of field to be initialized.
+ * @param <F> the type of element factory to be initialized.
+ * @param <P> the type of widget page objects.
  */
-public abstract class AbstractPageObjectInitializer<T> {
+public abstract class AbstractPageObjectInitializer<F, P extends WidgetPageObject<F>> {
 
-    private final Class<T> typeToInitialize;
     private final List<Object> alreadyVisitedObjects = new ArrayList<>();
-
-    /**
-     * Create a new {@link AbstractPageObjectInitializer} instance that will
-     * initialize fields that are
-     *
-     * @param typeToInitialize the Class object of the type of field to be initialized.
-     *                         May not be null.
-     *
-     * @throws IllegalArgumentException if typeToInitialize is null.
-     */
-    public AbstractPageObjectInitializer(Class<T> typeToInitialize) {
-        this.typeToInitialize = validate().that(typeToInitialize).isNotNull();
-    }
 
     /**
      * Initialize the given page object. It will first check all the fields of the object.
@@ -47,14 +34,31 @@ public abstract class AbstractPageObjectInitializer<T> {
      * @param object the object to be initialized.
      *               May not be null.
      *
-     * @throws IllegalArgumentException if object is null.
+     * @throws IllegalArgumentException          if object is null.
+     * @throws PageObjectInitializationException if there is an error while initializing object.
      */
     public final void initialize(Object object) {
         validate().withMessage("Cannot initialize a null object")
                   .that(object)
                   .isNotNull();
-        initializeObject(object, new ArrayList<>());
+        try {
+            initializeObject(object, new ArrayList<>());
+        } catch (PageObjectInitializationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new PageObjectInitializationException("Caught unexpected exception while initializing the page object", e);
+        }
     }
+
+    /**
+     * @return the Class object for the element factory type.
+     */
+    protected abstract Class<F> getElementFactoryClass();
+
+    /**
+     * @return the Class object for the widget type.
+     */
+    protected abstract Class<P> getWidgetClass();
 
     /**
      * Return a new instance of type T built from the given fields. They list of
@@ -69,7 +73,7 @@ public abstract class AbstractPageObjectInitializer<T> {
      *
      * @throws IllegalArgumentException if fields is null or empty.
      */
-    protected abstract T buildValue(List<Field> fields);
+    protected abstract F buildValue(List<Field> fields);
 
     private boolean alreadyVisited(Object object) {
         for (Object obj : alreadyVisitedObjects) {
@@ -102,6 +106,7 @@ public abstract class AbstractPageObjectInitializer<T> {
         return declaredFields;
     }
 
+    @SuppressWarnings("unchecked")
     private void initializeField(Field field,
                                  Object object,
                                  List<Field> fields) {
@@ -109,11 +114,17 @@ public abstract class AbstractPageObjectInitializer<T> {
         try {
             Object value = field.get(object);
             if (null != value) {
-                // Recursively initialize non-null fields
-                initializeObject(value, fields);
+                // Check if this is a widget type field
+                if (getWidgetClass().isAssignableFrom(field.getType())) {
+                    ((P) value).setWidgetObject(buildValue(fields));
+                }
+                if (PageObject.class.isAssignableFrom(field.getType())) {
+                    // Recursively initialize non-null page object fields (including widgets)
+                    initializeObject(value, fields);
+                }
             } else {
                 // Null field, check if it's the type we are initializing
-                if (field.getType().equals(typeToInitialize)) {
+                if (field.getType().equals(getElementFactoryClass())) {
                     field.set(object, buildValue(fields));
                 }
             }
