@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.List;
-import java.util.function.Function;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -88,12 +88,11 @@ final class AbstractPageObjectInitializerTest {
                                  () -> Assertions.assertNotNull(pageA.fooA),
                                  () -> Assertions.assertNotNull(pageA.superFoo),
                                  () -> Assertions.assertNotNull(pageA.widgetA.widgetFoo),
-                                 () -> Assertions.assertNotNull(pageA.widgetA.getWidgetObject()),
+                                 () -> Assertions.assertNotNull(pageA.widgetA.widgetFoo.getFieldsList()),
                                  () -> Assertions.assertNotNull(pageA.pageB.fooB),
                                  () -> Assertions.assertNotNull(pageA.pageB.pageC),
                                  () -> Assertions.assertEquals(1, pageA.fooA.getFieldsList().size()),
                                  () -> Assertions.assertEquals(1, pageA.superFoo.getFieldsList().size()),
-                                 () -> Assertions.assertEquals(1, pageA.widgetA.getWidgetObject().getFieldsList().size()),
                                  () -> Assertions.assertEquals(2, pageA.widgetA.widgetFoo.getFieldsList().size()),
                                  () -> Assertions.assertEquals(2, pageA.pageB.fooB.getFieldsList().size()),
                                  () -> Assertions.assertEquals(3, pageA.pageB.pageC.fooC.getFieldsList().size()),
@@ -133,14 +132,14 @@ final class AbstractPageObjectInitializerTest {
     @SuppressWarnings("unchecked")
     private static TestElementFactory getFactory() {
         return new TestElementFactory("defaultDescription",
-                                      mock(PatientWait.class),
+                                      PatientWait.builder().build(),
                                       mock(Predicate.class),
                                       Duration.ZERO,
                                       mock(Supplier.class));
     }
 
     private static class ThrowingPageObjectInitializer
-                 extends AbstractPageObjectInitializer<TestElementFactory, TestWidget> {
+                 extends AbstractPageObjectInitializer {
 
         private final Supplier<RuntimeException> exceptionSupplier;
 
@@ -149,17 +148,10 @@ final class AbstractPageObjectInitializerTest {
         }
 
         @Override
-        protected Class<TestElementFactory> getElementFactoryClass() {
-            return TestElementFactory.class;
-        }
+        protected void preProcessPage(PageObject page, List<Field> fieldsList) { }
 
         @Override
-        protected Class<TestWidget> getWidgetClass() {
-            return TestWidget.class;
-        }
-
-        @Override
-        protected TestElementFactory buildValue(List<Field> fields) {
+        protected Optional<Object> getValue(List<Field> fieldsList) {
             throw exceptionSupplier.get();
         }
     }
@@ -182,7 +174,7 @@ final class AbstractPageObjectInitializerTest {
         private final PageB pageB = new PageB();
     }
 
-    private static final class WidgetA extends TestWidget {
+    private static final class WidgetA extends TestPageObjectInitializer.WidgetObject {
 
         private final TestElementFactory widgetFoo = null;
     }

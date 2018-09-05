@@ -3,28 +3,32 @@ package com.redfin.selenium;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import java.util.Optional;
 
 public final class TestPageObjectInitializer
-           extends AbstractPageObjectInitializer<TestElementFactory,
-                                                 TestWidget> {
+           extends AbstractPageObjectInitializer {
 
-    @Override
-    protected Class<TestElementFactory> getElementFactoryClass() {
-        return TestElementFactory.class;
+    public static class WidgetObject implements PageObject {
+
+        private List<Field> widgetFieldList = null;
     }
 
     @Override
-    protected Class<TestWidget> getWidgetClass() {
-        return TestWidget.class;
+    protected void preProcessPage(PageObject page,
+                                  List<Field> fieldsList) {
+        if (page instanceof WidgetObject) {
+            ((WidgetObject) page).widgetFieldList = new ArrayList<>(fieldsList);
+        }
     }
 
     @Override
-    protected TestElementFactory buildValue(List<Field> fields) {
-        TestElementFactory factory = mock(TestElementFactory.class);
-        when(factory.getFieldsList()).thenReturn(new ArrayList<>(fields));
-        return factory;
+    protected Optional<Object> getValue(List<Field> fieldsList) {
+        Field field = fieldsList.get(fieldsList.size() - 1);
+        if (TestElementFactory.class.isAssignableFrom(field.getType())) {
+            TestElementFactory factory = new TestElementFactory();
+            factory.setFieldsList(fieldsList);
+            return Optional.of(factory);
+        }
+        return Optional.empty();
     }
 }

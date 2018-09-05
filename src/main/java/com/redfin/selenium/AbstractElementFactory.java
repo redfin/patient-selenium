@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -22,14 +23,15 @@ import static com.redfin.validity.Validity.validate;
  * declared as fields on a page object and initialized by an instance of
  * {@link AbstractPageObjectInitializer}. It will produce instances of an
  * {@link AbstractElement} of type E as requested.
- *
+ * <p>
  * Note that this class, like other classes in this library, is not intended for multi threaded use.
  *
  * @param <W> the type of {@link WebElement} for the element factory.
  * @param <E> the type of {@link AbstractElement} that this factory produces.
  */
 public abstract class AbstractElementFactory<W extends WebElement,
-                                             E extends AbstractElement<W>> {
+                                             E extends Element<W>>
+           implements ElementFactory<W, E> {
 
     private static final String ELEMENT_DESCRIPTION_FORMAT = "%s.atIndex(%d)";
 
@@ -73,17 +75,7 @@ public abstract class AbstractElementFactory<W extends WebElement,
         this.elementListSupplier = validate().that(elementListSupplier).isNotNull();
     }
 
-    /**
-     * Return the lazily located element created by this factory for the given index. Note that
-     * this is NOT a selenium element terminating method so this does not actually
-     * check that the element is on the current page. Use the {@link AbstractElement#isPresent()}
-     * or {@link AbstractElement#isAbsent(Duration)} methods to check if they actually exist.
-     *
-     * @param index the element for the given index (note this is 0-based).
-     *              May not be negative.
-     *
-     * @return the element for the given index.
-     */
+    @Override
     public final E atIndex(int index) {
         validate().withMessage("Cannot find an element at a negative index")
                   .that(index)
@@ -95,13 +87,7 @@ public abstract class AbstractElementFactory<W extends WebElement,
                                                             null));
     }
 
-    /**
-     * Return the located elements created by this factory. Note that, unlike the {@link #atIndex(int)} method,
-     * this DOES trigger a selenium element lookup to check the size of the returned list so the elements returned
-     * are eagerly located.
-     *
-     * @return the List of located element objects.
-     */
+    @Override
     public final List<E> getAll() {
         List<W> foundElements = findAllElements();
         List<E> builtElements = new ArrayList<>(foundElements.size());
@@ -113,6 +99,36 @@ public abstract class AbstractElementFactory<W extends WebElement,
                                                                                foundElements.get(index))));
         }
         return builtElements;
+    }
+
+    @Override
+    public final boolean isPresent() {
+        return atIndex(0).isPresent();
+    }
+
+    @Override
+    public final boolean isAbsent(Duration timeout) {
+        return atIndex(0).isAbsent(timeout);
+    }
+
+    @Override
+    public final void accept(Consumer<W> consumer) {
+        atIndex(0).accept(consumer);
+    }
+
+    @Override
+    public final <R> R apply(Function<W, R> function) {
+        return atIndex(0).apply(function);
+    }
+
+    @Override
+    public final void setCache(W element) {
+        atIndex(0).setCache(element);
+    }
+
+    @Override
+    public final void clearCache() {
+        atIndex(0).clearCache();
     }
 
     @Override
@@ -134,7 +150,7 @@ public abstract class AbstractElementFactory<W extends WebElement,
      * @param initialElement     the already located selenium element if it has been located.
      *                           It may be null if it hasn't been located yet.
      *
-     * @return the built concrete element instance for the given values.
+     * @return the built concrete element instance for the given values. Should never return null.
      *
      * @throws IllegalArgumentException if any element other than initialElement is null or if elementDescription is empty.
      */

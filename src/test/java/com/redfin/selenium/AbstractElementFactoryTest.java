@@ -1,10 +1,15 @@
 package com.redfin.selenium;
 
 import com.redfin.patience.PatientWait;
+import com.redfin.selenium.contract.CachingExecutorContract;
+import com.redfin.selenium.contract.ElementContract;
+import com.redfin.selenium.extensions.TestElementFactoryParameterResolver;
+import com.redfin.selenium.extensions.WebElementParameterResolver;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -16,6 +21,7 @@ import org.openqa.selenium.WebElement;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -78,7 +84,7 @@ final class AbstractElementFactoryTest {
         @DisplayName("getters return given values")
         void testReturnsGivenArguments() {
             String description = "foo";
-            PatientWait wait = mock(PatientWait.class);
+            PatientWait wait = getWait();
             Predicate<WebElement> filter = e -> true;
             Duration timeout = Duration.ZERO;
             Supplier<List<WebElement>> elementListSupplier = ArrayList::new;
@@ -134,7 +140,7 @@ final class AbstractElementFactoryTest {
                 }
             }
             String description = "hello";
-            PatientWait wait = PatientWait.builder().build();
+            PatientWait wait = getWait();
             Predicate<WebElement> filter = WebElement::isDisplayed;
             Duration timeout = Duration.ZERO;
             Supplier<List<WebElement>> elementListSupplier = () -> expectedList;
@@ -159,7 +165,7 @@ final class AbstractElementFactoryTest {
                 when(element.isDisplayed()).thenReturn(false);
             }
             String description = "hello";
-            PatientWait wait = PatientWait.builder().build();
+            PatientWait wait = getWait();
             Predicate<WebElement> filter = WebElement::isDisplayed;
             Duration timeout = Duration.ZERO;
             Supplier<List<WebElement>> elementListSupplier = () -> expectedList;
@@ -179,7 +185,7 @@ final class AbstractElementFactoryTest {
                 when(element.isDisplayed()).thenReturn(true);
             }
             String description = "hello";
-            PatientWait wait = PatientWait.builder().build();
+            PatientWait wait = getWait();
             Predicate<WebElement> filter = WebElement::isDisplayed;
             Duration timeout = Duration.ZERO;
             Supplier<List<WebElement>> elementListSupplier = () -> expectedList;
@@ -200,7 +206,7 @@ final class AbstractElementFactoryTest {
                 when(element.isDisplayed()).thenReturn(false);
             }
             String description = "hello";
-            PatientWait wait = PatientWait.builder().build();
+            PatientWait wait = getWait();
             Predicate<WebElement> filter = WebElement::isDisplayed;
             Duration timeout = Duration.ZERO;
             Supplier<List<WebElement>> elementListSupplier = () -> expectedList;
@@ -222,7 +228,7 @@ final class AbstractElementFactoryTest {
             when(expectedList.get(2).isDisplayed()).thenReturn(false);
             when(expectedList.get(3).isDisplayed()).thenReturn(true);
             String description = "hello";
-            PatientWait wait = PatientWait.builder().build();
+            PatientWait wait = getWait();
             Predicate<WebElement> filter = WebElement::isDisplayed;
             Duration timeout = Duration.ZERO;
             Supplier<List<WebElement>> elementListSupplier = () -> expectedList;
@@ -245,6 +251,30 @@ final class AbstractElementFactoryTest {
         }
     }
 
+    @Nested
+    @DisplayName("as an CachingExecutor")
+    @ExtendWith({TestElementFactoryParameterResolver.class,
+                 WebElementParameterResolver.class})
+    final class AsCachingExecutor implements CachingExecutorContract<TestElementFactory, WebElement> {
+
+        @Override
+        public WebElement getCachedObjectFromExecutor(TestElementFactory instance) {
+            return instance.atIndex(0).getCachedElement();
+        }
+    }
+
+    @Nested
+    @DisplayName("as an Element")
+    @ExtendWith({TestElementFactoryParameterResolver.class,
+                 WebElementParameterResolver.class})
+    final class AsElement implements ElementContract<TestElementFactory, WebElement> {
+
+        @Override
+        public WebElement getCachedObjectFromExecutor(TestElementFactory instance) {
+            return instance.atIndex(0).getCachedElement();
+        }
+    }
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Test Helpers
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -255,11 +285,13 @@ final class AbstractElementFactoryTest {
 
     @SuppressWarnings("unchecked")
     private static TestElementFactory getInstance(String description) {
+        List<WebElement> list = new ArrayList<>();
+        list.add(mock(WebElement.class));
         return getInstance(description,
-                           mock(PatientWait.class),
-                           mock(Predicate.class),
+                           getWait(),
+                           Objects::nonNull,
                            Duration.ZERO,
-                           mock(Supplier.class));
+                           () -> list);
     }
 
     private static TestElementFactory getInstance(String description,
@@ -270,30 +302,34 @@ final class AbstractElementFactoryTest {
         return new TestElementFactory(description, wait, filter, timeout, elementListSupplier);
     }
 
+    private static final PatientWait getWait() {
+        return PatientWait.builder().build();
+    }
+
     private static final class ValidConstructorArguments
-                    implements ArgumentsProvider {
+            implements ArgumentsProvider {
 
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(Arguments.of("hello", mock(PatientWait.class), mock(Predicate.class), Duration.ZERO, mock(Supplier.class)),
-                             Arguments.of("hello", mock(PatientWait.class), mock(Predicate.class), Duration.ofDays(5), mock(Supplier.class)),
-                             Arguments.of("😄", mock(PatientWait.class), mock(Predicate.class), Duration.ZERO, mock(Supplier.class)),
-                             Arguments.of("😄", mock(PatientWait.class), mock(Predicate.class), Duration.ofDays(5), mock(Supplier.class)));
+            return Stream.of(Arguments.of("hello", getWait(), mock(Predicate.class), Duration.ZERO, mock(Supplier.class)),
+                             Arguments.of("hello", getWait(), mock(Predicate.class), Duration.ofDays(5), mock(Supplier.class)),
+                             Arguments.of("😄", getWait(), mock(Predicate.class), Duration.ZERO, mock(Supplier.class)),
+                             Arguments.of("😄", getWait(), mock(Predicate.class), Duration.ofDays(5), mock(Supplier.class)));
         }
     }
 
     private static final class InvalidConstructorArguments
-                    implements ArgumentsProvider {
+            implements ArgumentsProvider {
 
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(Arguments.of("", mock(PatientWait.class), mock(Predicate.class), Duration.ZERO, mock(Supplier.class)),
-                             Arguments.of("hello", mock(PatientWait.class), mock(Predicate.class), Duration.ofMillis(-1), mock(Supplier.class)),
-                             Arguments.of(null, mock(PatientWait.class), mock(Predicate.class), Duration.ZERO, mock(Supplier.class)),
+            return Stream.of(Arguments.of("", getWait(), mock(Predicate.class), Duration.ZERO, mock(Supplier.class)),
+                             Arguments.of("hello", getWait(), mock(Predicate.class), Duration.ofMillis(-1), mock(Supplier.class)),
+                             Arguments.of(null, getWait(), mock(Predicate.class), Duration.ZERO, mock(Supplier.class)),
                              Arguments.of("hello", null, mock(Predicate.class), Duration.ZERO, mock(Supplier.class)),
-                             Arguments.of("hello", mock(PatientWait.class), null, Duration.ZERO, mock(Supplier.class)),
-                             Arguments.of("hello", mock(PatientWait.class), mock(Predicate.class), null, mock(Supplier.class)),
-                             Arguments.of("hello", mock(PatientWait.class), mock(Predicate.class), Duration.ZERO, null));
+                             Arguments.of("hello", getWait(), null, Duration.ZERO, mock(Supplier.class)),
+                             Arguments.of("hello", getWait(), mock(Predicate.class), null, mock(Supplier.class)),
+                             Arguments.of("hello", getWait(), mock(Predicate.class), Duration.ZERO, null));
         }
     }
 }
