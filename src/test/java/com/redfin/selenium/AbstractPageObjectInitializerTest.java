@@ -1,17 +1,20 @@
 package com.redfin.selenium;
 
-import com.redfin.patience.PatientWait;
+import com.redfin.selenium.implementation.FindByCss;
+import com.redfin.selenium.implementation.TestPageObjectInitializer;
+import com.redfin.selenium.implementation.TestPatientDriver;
+import com.redfin.selenium.implementation.TestPatientElement;
+import com.redfin.selenium.implementation.TestPatientElementLocator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 
 import java.lang.reflect.Field;
-import java.time.Duration;
-import java.util.List;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import static org.mockito.Mockito.mock;
@@ -23,16 +26,11 @@ final class AbstractPageObjectInitializerTest {
     // Test Cases
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    @Nested
-    @DisplayName("when being constructed")
-    final class ConstructorTests {
-
-        @Test
-        @DisplayName("succeeds with a valid class object")
-        void testCanInstantiate() {
-            Assertions.assertNotNull(getInstance(),
-                                     "Should be able to instantiate a page object initializer");
-        }
+    @Test
+    @DisplayName("can be instantiated")
+    void testCanInstantiate() {
+        Assertions.assertNotNull(getInstance(),
+                                 "Should be able to instantiate a page object initializer");
     }
 
     @Nested
@@ -43,8 +41,16 @@ final class AbstractPageObjectInitializerTest {
         @DisplayName("throws exception for initialize(Object) with a null object")
         void testThrowsExceptionForNullObject() {
             Assertions.assertThrows(IllegalArgumentException.class,
-                                    () -> getInstance().initialize(null),
+                                    () -> getInstance().initializePage(null, mock(TestPatientDriver.class)),
                                     "Should throw an exception for a null object to initialize");
+        }
+
+        @Test
+        @DisplayName("throws exception for initialize(Object) with a null object")
+        void testThrowsExceptionForNullFindsElements() {
+            Assertions.assertThrows(IllegalArgumentException.class,
+                                    () -> getInstance().initializePage(mock(PageObject.class), null),
+                                    "Should throw an exception for a null finds elements to be the root of element locator");
         }
 
         @Test
@@ -55,8 +61,6 @@ final class AbstractPageObjectInitializerTest {
             Assumptions.assumeTrue(null == pageA.superFoo);
             Assumptions.assumeTrue(null == pageA.fooA);
             Assumptions.assumeTrue(null != pageA.notToBeInitialized);
-            Assumptions.assumeTrue(null != pageA.widgetA);
-            Assumptions.assumeTrue(null == pageA.nullWidget);
             Assumptions.assumeTrue(null != pageA.pageB);
             Assumptions.assumeTrue(null == pageA.pageB.fooB);
             Assumptions.assumeTrue(null != pageA.pageB.notToBeInitialized);
@@ -68,34 +72,30 @@ final class AbstractPageObjectInitializerTest {
             // Create a cycle in the object graph to make sure cycles don't cause an infinite loop
             pageA.pageB.pageC.pageA = pageA;
             // Grab references to the non-null field values
-            TestElementFactory fooA = pageA.notToBeInitialized;
-            TestElementFactory fooB = pageA.pageB.notToBeInitialized;
-            TestElementFactory fooC = pageA.pageB.pageC.notToBeInitialized;
+            TestPatientElementLocator pageANoInit = pageA.notToBeInitialized;
+            TestPatientElementLocator pageBNoInit = pageA.pageB.notToBeInitialized;
+            TestPatientElementLocator pageCNoInit = pageA.pageB.pageC.notToBeInitialized;
             PageB pageB = pageA.pageB;
             PageC pageC = pageA.pageB.pageC;
             // Initialize the page object
-            getInstance().initialize(pageA);
+            TestPatientDriver driver = new TestPatientDriver(PatientSeleniumConfig.builder().build(),
+                                                             "chrome",
+                                                             () -> mock(WebDriver.class));
+            new TestPageObjectInitializer().initializePage(pageA, driver);
             // Verify the results
             Assertions.assertAll(() -> Assertions.assertSame(pageB, pageA.pageB),
                                  () -> Assertions.assertSame(pageC, pageA.pageB.pageC),
-                                 () -> Assertions.assertSame(fooA, pageA.notToBeInitialized),
-                                 () -> Assertions.assertSame(fooB, pageA.pageB.notToBeInitialized),
-                                 () -> Assertions.assertSame(fooC, pageA.pageB.pageC.notToBeInitialized),
-                                 () -> Assertions.assertNull(fooA.getFieldsList()),
-                                 () -> Assertions.assertNull(fooB.getFieldsList()),
-                                 () -> Assertions.assertNull(fooC.getFieldsList()),
-                                 () -> Assertions.assertNull(pageA.nullWidget),
+                                 () -> Assertions.assertSame(pageANoInit, pageA.notToBeInitialized),
+                                 () -> Assertions.assertSame(pageBNoInit, pageA.pageB.notToBeInitialized),
+                                 () -> Assertions.assertSame(pageCNoInit, pageA.pageB.pageC.notToBeInitialized),
                                  () -> Assertions.assertNotNull(pageA.fooA),
                                  () -> Assertions.assertNotNull(pageA.superFoo),
-                                 () -> Assertions.assertNotNull(pageA.widgetA.widgetFoo),
-                                 () -> Assertions.assertNotNull(pageA.widgetA.widgetFoo.getFieldsList()),
                                  () -> Assertions.assertNotNull(pageA.pageB.fooB),
                                  () -> Assertions.assertNotNull(pageA.pageB.pageC),
-                                 () -> Assertions.assertEquals(1, pageA.fooA.getFieldsList().size()),
-                                 () -> Assertions.assertEquals(1, pageA.superFoo.getFieldsList().size()),
-                                 () -> Assertions.assertEquals(2, pageA.widgetA.widgetFoo.getFieldsList().size()),
-                                 () -> Assertions.assertEquals(2, pageA.pageB.fooB.getFieldsList().size()),
-                                 () -> Assertions.assertEquals(3, pageA.pageB.pageC.fooC.getFieldsList().size()),
+                                 () -> Assertions.assertEquals("chrome.find(By.cssSelector: fooA)", pageA.fooA.toString()),
+                                 () -> Assertions.assertEquals("chrome.find(By.cssSelector: superFoo)", pageA.superFoo.toString()),
+                                 () -> Assertions.assertEquals("chrome.find(By.cssSelector: fooB)", pageA.pageB.fooB.toString()),
+                                 () -> Assertions.assertEquals("chrome.find(By.cssSelector: fooC)", pageA.pageB.pageC.fooC.toString()),
                                  () -> Assertions.assertNull(pageA.pageB.pageC.pageD.fooD));
         }
 
@@ -104,7 +104,7 @@ final class AbstractPageObjectInitializerTest {
         void testPropagatesPageObjectException() {
             String message = "whoops";
             Throwable thrown = Assertions.assertThrows(PageObjectInitializationException.class,
-                                                       () -> new ThrowingPageObjectInitializer(() -> new PageObjectInitializationException(message)).initialize(new PageA()),
+                                                       () -> new ThrowingPageObjectInitializer(() -> new PageObjectInitializationException(message)).initializePage(new PageA(), mock(TestPatientDriver.class)),
                                                        "Should propagate a page object exception");
             Assertions.assertNull(thrown.getCause(), "The thrown exception shouldn't have a set cause");
             Assertions.assertEquals(message, thrown.getMessage(), "The thrown exception should have the given message");
@@ -115,7 +115,7 @@ final class AbstractPageObjectInitializerTest {
         void testWrapsUnexpectedExceptions() {
             RuntimeException cause = new RuntimeException("message");
             Throwable thrown = Assertions.assertThrows(PageObjectInitializationException.class,
-                                                       () -> new ThrowingPageObjectInitializer(() -> cause).initialize(new PageA()),
+                                                       () -> new ThrowingPageObjectInitializer(() -> cause).initializePage(new PageA(), mock(TestPatientDriver.class)),
                                                        "Should throw a page object exception");
             Assertions.assertEquals(cause, thrown.getCause(), "The thrown exception should have the expected cause.");
         }
@@ -129,17 +129,7 @@ final class AbstractPageObjectInitializerTest {
         return new TestPageObjectInitializer();
     }
 
-    @SuppressWarnings("unchecked")
-    private static TestElementFactory getFactory() {
-        return new TestElementFactory("defaultDescription",
-                                      PatientWait.builder().build(),
-                                      mock(Predicate.class),
-                                      Duration.ZERO,
-                                      mock(Supplier.class));
-    }
-
-    private static class ThrowingPageObjectInitializer
-                 extends AbstractPageObjectInitializer {
+    private static class ThrowingPageObjectInitializer extends AbstractPageObjectInitializer<WebElement, TestPatientElementLocator, TestPatientElement> {
 
         private final Supplier<RuntimeException> exceptionSupplier;
 
@@ -148,51 +138,49 @@ final class AbstractPageObjectInitializerTest {
         }
 
         @Override
-        protected void preProcessPage(PageObject page, List<Field> fieldsList) { }
+        protected void preProcessPage(PageObject page) { }
 
         @Override
-        protected Optional<Object> getValue(List<Field> fieldsList) {
+        protected Optional<Object> getValueForField(PageObject page, Field field, FindsElements findsElements) {
             throw exceptionSupplier.get();
         }
     }
 
     private static class SuperPageA implements PageObject {
 
-        final TestElementFactory superFoo = null;
+        @FindByCss("superFoo")
+        final TestPatientElementLocator superFoo = null;
     }
 
     private static final class PageA extends SuperPageA {
 
-        private final TestElementFactory fooA = null;
+        @FindByCss("fooA")
+        private final TestPatientElementLocator fooA = null;
 
-        private final TestElementFactory notToBeInitialized = getFactory();
-
-        private final WidgetA widgetA = new WidgetA();
-
-        private final WidgetA nullWidget = null;
+        @FindByCss("notToBeInitialized")
+        private final TestPatientElementLocator notToBeInitialized = mock(TestPatientElementLocator.class);
 
         private final PageB pageB = new PageB();
     }
 
-    private static final class WidgetA extends TestPageObjectInitializer.WidgetObject {
-
-        private final TestElementFactory widgetFoo = null;
-    }
-
     private static final class PageB implements PageObject {
 
-        private final TestElementFactory fooB = null;
+        @FindByCss("fooB")
+        private final TestPatientElementLocator fooB = null;
 
-        private final TestElementFactory notToBeInitialized = getFactory();
+        @FindByCss("notToBeInitialized")
+        private final TestPatientElementLocator notToBeInitialized = mock(TestPatientElementLocator.class);
 
         private final PageC pageC = new PageC();
     }
 
     private static final class PageC implements PageObject {
 
-        private final TestElementFactory fooC = null;
+        @FindByCss("fooC")
+        private final TestPatientElementLocator fooC = null;
 
-        private final TestElementFactory notToBeInitialized = getFactory();
+        @FindByCss("notToBeInitialized")
+        private final TestPatientElementLocator notToBeInitialized = mock(TestPatientElementLocator.class);
 
         private final PageD pageD = new PageD();
 
@@ -205,6 +193,7 @@ final class AbstractPageObjectInitializerTest {
 
         // Not a PageObject interface class so this should stay null
 
-        private final TestElementFactory fooD = null;
+        @FindByCss("fooD")
+        private final TestPatientElementLocator fooD = null;
     }
 }

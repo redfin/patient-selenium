@@ -1,6 +1,7 @@
 package com.redfin.selenium;
 
 /**
- * A marker interface for objects to be considered as page objects.
+ * A simple marker interface for objects that should be considered as page objects for
+ * initialization via a {@link AbstractPageObjectInitializer} instance.
  */
-public interface PageObject { }
+public interface PageObject {}

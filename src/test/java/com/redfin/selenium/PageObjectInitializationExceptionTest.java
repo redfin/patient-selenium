@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 final class PageObjectInitializationExceptionTest {
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // Test Cases
+    // Test cases
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     @Nested
@@ -91,11 +91,10 @@ final class PageObjectInitializationExceptionTest {
     }
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // Test Helpers
+    // Test helpers
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    private static final class MessageArgumentProvider
-                    implements ArgumentsProvider {
+    private static final class MessageArgumentProvider implements ArgumentsProvider {
 
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
@@ -104,8 +103,7 @@ final class PageObjectInitializationExceptionTest {
         }
     }
 
-    private static final class CauseArgumentProvider
-                    implements ArgumentsProvider {
+    private static final class CauseArgumentProvider implements ArgumentsProvider {
 
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
@@ -114,8 +112,7 @@ final class PageObjectInitializationExceptionTest {
         }
     }
 
-    private static final class MessageAndCauseArgumentProvider
-                    implements ArgumentsProvider {
+    private static final class MessageAndCauseArgumentProvider implements ArgumentsProvider {
 
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
