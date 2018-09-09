@@ -2,7 +2,6 @@ package com.redfin.selenium.implementation;
 
 import com.redfin.patience.PatientWait;
 import com.redfin.selenium.AbstractPatientElement;
-import com.redfin.selenium.PatientSeleniumConfig;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
@@ -12,9 +11,9 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public final class TestPatientElement
-           extends AbstractPatientElement<WebElement, TestPatientElementLocator, TestPatientElement> {
+           extends AbstractPatientElement<WebElement, TestPatientConfig, TestPatientElementLocator, TestPatientElement> {
 
-    public TestPatientElement(PatientSeleniumConfig<WebElement> config,
+    public TestPatientElement(TestPatientConfig config,
                               String description,
                               Supplier<Optional<WebElement>> elementSupplier,
                               PatientWait wait,

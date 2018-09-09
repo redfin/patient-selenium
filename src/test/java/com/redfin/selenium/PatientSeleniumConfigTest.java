@@ -1,6 +1,7 @@
 package com.redfin.selenium;
 
 import com.redfin.patience.PatientWait;
+import com.redfin.selenium.implementation.TestPatientConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -37,7 +38,7 @@ final class PatientSeleniumConfigTest {
         @Test
         @DisplayName("is successful with the default builder")
         void testCanBeCreatedFromDefaultBuilder() {
-            Assertions.assertNotNull(PatientSeleniumConfig.builder().build(),
+            Assertions.assertNotNull(TestPatientConfig.builder().build(),
                                      "Should have returned a non-null instance for the default builder");
         }
 
@@ -50,14 +51,14 @@ final class PatientSeleniumConfigTest {
                                                int maxElementActionAttempts,
                                                Class<? extends RuntimeException>[] actionExceptionsToIgnore,
                                                Class<? extends RuntimeException>[] lookupExceptionsToIgnore) {
-            Assertions.assertNotNull(PatientSeleniumConfig.builder()
-                                                          .withFilter(filter)
-                                                          .withWait(wait)
-                                                          .withTimeout(timeout)
-                                                          .withMaxElemementActionAttempts(maxElementActionAttempts)
-                                                          .withIgnoredActionExceptions(actionExceptionsToIgnore)
-                                                          .withIgnoredLookupExceptions(lookupExceptionsToIgnore)
-                                                          .build(),
+            Assertions.assertNotNull(TestPatientConfig.builder()
+                                                      .withFilter(filter)
+                                                      .withWait(wait)
+                                                      .withTimeout(timeout)
+                                                      .withMaxElemementActionAttempts(maxElementActionAttempts)
+                                                      .withIgnoredActionExceptions(actionExceptionsToIgnore)
+                                                      .withIgnoredLookupExceptions(lookupExceptionsToIgnore)
+                                                      .build(),
                                      "Should have returned successfully from the Builder build() method with valid arguments");
         }
 
@@ -71,14 +72,14 @@ final class PatientSeleniumConfigTest {
                                            Class<? extends RuntimeException>[] actionExceptionsToIgnore,
                                            Class<? extends RuntimeException>[] lookupExceptionsToIgnore) {
             Assertions.assertThrows(IllegalArgumentException.class,
-                                    () -> PatientSeleniumConfig.builder()
-                                                               .withFilter(filter)
-                                                               .withWait(wait)
-                                                               .withTimeout(timeout)
-                                                               .withMaxElemementActionAttempts(maxElementActionAttempts)
-                                                               .withIgnoredActionExceptions(actionExceptionsToIgnore)
-                                                               .withIgnoredLookupExceptions(lookupExceptionsToIgnore)
-                                                               .build(),
+                                    () -> TestPatientConfig.builder()
+                                                           .withFilter(filter)
+                                                           .withWait(wait)
+                                                           .withTimeout(timeout)
+                                                           .withMaxElemementActionAttempts(maxElementActionAttempts)
+                                                           .withIgnoredActionExceptions(actionExceptionsToIgnore)
+                                                           .withIgnoredLookupExceptions(lookupExceptionsToIgnore)
+                                                           .build(),
                                     "Should have thrown an exception from Builder build() with invalid arguments");
         }
     }
@@ -95,16 +96,16 @@ final class PatientSeleniumConfigTest {
             PatientWait wait = mock(PatientWait.class);
             Duration timeout = mock(Duration.class);
             int maxElementActionAttempts = 10;
-            PatientSeleniumConfig<WebElement> config = PatientSeleniumConfig.builder()
-                                                                            .withFilter(filter)
-                                                                            .withWait(wait)
-                                                                            .withTimeout(timeout)
-                                                                            .withMaxElemementActionAttempts(maxElementActionAttempts)
-                                                                            .build();
-            Assertions.assertAll(() -> Assertions.assertSame(filter, config.getDefaultFilter(), ""),
-                                 () -> Assertions.assertSame(wait, config.getDefaultWait(), ""),
-                                 () -> Assertions.assertSame(timeout, config.getDefaultTimeout(), ""),
-                                 () -> Assertions.assertEquals(maxElementActionAttempts, config.getMaxElementActionAttempts(), ""));
+            TestPatientConfig config = TestPatientConfig.builder()
+                                                        .withFilter(filter)
+                                                        .withWait(wait)
+                                                        .withTimeout(timeout)
+                                                        .withMaxElemementActionAttempts(maxElementActionAttempts)
+                                                        .build();
+            Assertions.assertAll(() -> Assertions.assertSame(filter, config.getDefaultFilter(), "Should return the given filter"),
+                                 () -> Assertions.assertSame(wait, config.getDefaultWait(), "Should return the given wait"),
+                                 () -> Assertions.assertSame(timeout, config.getDefaultTimeout(), "Should return the given timeout"),
+                                 () -> Assertions.assertEquals(maxElementActionAttempts, config.getMaxElementActionAttempts(), "Should return the given max action attempts int"));
         }
 
         @Test
@@ -114,9 +115,9 @@ final class PatientSeleniumConfigTest {
             Class<? extends RuntimeException>[] exceptions = new Class[2];
             exceptions[0] = IllegalStateException.class;
             exceptions[1] = WebDriverException.class;
-            PatientSeleniumConfig<WebElement> config = PatientSeleniumConfig.builder()
-                                                                            .withIgnoredLookupExceptions(exceptions)
-                                                                            .build();
+            TestPatientConfig config = TestPatientConfig.builder()
+                                                        .withIgnoredLookupExceptions(exceptions)
+                                                        .build();
             for (Class<? extends RuntimeException> clazz : exceptions) {
                 Assertions.assertTrue(config.isIgnoredLookupException(clazz),
                                       "Should return true for expected classes to isIgnoredLookupException(Class)");
@@ -132,9 +133,9 @@ final class PatientSeleniumConfigTest {
             Class<? extends RuntimeException>[] exceptions = new Class[2];
             exceptions[0] = IllegalStateException.class;
             exceptions[1] = WebDriverException.class;
-            PatientSeleniumConfig<WebElement> config = PatientSeleniumConfig.builder()
-                                                                            .withIgnoredActionExceptions(exceptions)
-                                                                            .build();
+            TestPatientConfig config = TestPatientConfig.builder()
+                                                        .withIgnoredActionExceptions(exceptions)
+                                                        .build();
             for (Class<? extends RuntimeException> clazz : exceptions) {
                 Assertions.assertTrue(config.isIgnoredActionException(clazz),
                                       "Should return true for expected classes to isIgnoredActionException(Class)");

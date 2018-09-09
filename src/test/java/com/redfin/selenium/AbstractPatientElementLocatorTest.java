@@ -1,6 +1,7 @@
 package com.redfin.selenium;
 
 import com.redfin.patience.PatientWait;
+import com.redfin.selenium.implementation.TestPatientConfig;
 import com.redfin.selenium.implementation.TestPatientElement;
 import com.redfin.selenium.implementation.TestPatientElementLocator;
 import org.junit.jupiter.api.Assertions;
@@ -41,7 +42,7 @@ final class AbstractPatientElementLocatorTest {
         @ParameterizedTest
         @ArgumentsSource(ValidConstructorArguments.class)
         @DisplayName("instantiates successfully when the constructor is called with valid arguments")
-        void testConstructedWithValidArguments(PatientSeleniumConfig<WebElement> config,
+        void testConstructedWithValidArguments(TestPatientConfig config,
                                                String description,
                                                Supplier<List<WebElement>> elementListSupplier,
                                                PatientWait wait,
@@ -54,7 +55,7 @@ final class AbstractPatientElementLocatorTest {
         @ParameterizedTest
         @ArgumentsSource(InvalidConstructorArguments.class)
         @DisplayName("throws an exception when the constructor is called with invalid arguments")
-        void testConstructedWithInvalidArguments(PatientSeleniumConfig<WebElement> config,
+        void testConstructedWithInvalidArguments(TestPatientConfig config,
                                                  String description,
                                                  Supplier<List<WebElement>> elementListSupplier,
                                                  PatientWait wait,
@@ -152,7 +153,7 @@ final class AbstractPatientElementLocatorTest {
             @Test
             @DisplayName("with a non-null wait it returns an instance with the expected values")
             void testCloneWithWaitReturnsExpectedInstance() {
-                PatientSeleniumConfig<WebElement> config = getMockConfig();
+                TestPatientConfig config = getMockConfig();
                 String description = "fooBarBaz";
                 Supplier<List<WebElement>> elementListSupplier = getMockElementListSupplier();
                 PatientWait wait = mock(PatientWait.class);
@@ -183,7 +184,7 @@ final class AbstractPatientElementLocatorTest {
             @Test
             @DisplayName("with a non-null timeout it returns an instance with the expected values")
             void testCloneWithTimeoutReturnsExpectedInstance() {
-                PatientSeleniumConfig<WebElement> config = getMockConfig();
+                TestPatientConfig config = getMockConfig();
                 String description = "fooBarBaz";
                 Supplier<List<WebElement>> elementListSupplier = getMockElementListSupplier();
                 PatientWait wait = mock(PatientWait.class);
@@ -222,7 +223,7 @@ final class AbstractPatientElementLocatorTest {
             @Test
             @DisplayName("with a non-null filter it returns an instance with the expected values")
             void testCloneWithFilterReturnsExpectedInstance() {
-                PatientSeleniumConfig<WebElement> config = getMockConfig();
+                TestPatientConfig config = getMockConfig();
                 String description = "fooBarBaz";
                 Supplier<List<WebElement>> elementListSupplier = getMockElementListSupplier();
                 PatientWait wait = mock(PatientWait.class);
@@ -254,7 +255,7 @@ final class AbstractPatientElementLocatorTest {
         @Test
         @DisplayName("returns the expected values from the getter methods")
         void testGettersReturnGivenValues() {
-            PatientSeleniumConfig<WebElement> config = getMockConfig();
+            TestPatientConfig config = getMockConfig();
             String description = "fooBarBaz";
             Supplier<List<WebElement>> elementListSupplier = getMockElementListSupplier();
             PatientWait wait = mock(PatientWait.class);
@@ -297,7 +298,7 @@ final class AbstractPatientElementLocatorTest {
                            e -> true);
     }
 
-    private static TestPatientElementLocator getInstance(PatientSeleniumConfig<WebElement> config,
+    private static TestPatientElementLocator getInstance(TestPatientConfig config,
                                                          String description,
                                                          Supplier<List<WebElement>> elementListSupplier,
                                                          PatientWait wait,

@@ -18,18 +18,19 @@ import static com.redfin.validity.Validity.validate;
  *
  * @param <D> the type of {@link WebDriver} this patient driver wraps.
  * @param <W> the type of {@link WebElement} the wrapped driver type locates.
+ * @param <C> the concrete type of {@link AbstractPatientConfig} for the implementing subclass.
  * @param <L> the concrete type of {@link AbstractPatientElementLocator} for the implementing subclass.
  * @param <E> the concrete type of {@link AbstractPatientElement} for the implementing subclass.
  */
 public abstract class AbstractPatientDriver<D extends WebDriver,
                                             W extends WebElement,
-                                            L extends AbstractPatientElementLocator<W, L, E>,
-                                            E extends AbstractPatientElement<W, L, E>>
-           implements FindsElements<W, L, E>,
+                                            C extends AbstractPatientConfig<W>,
+                                            L extends AbstractPatientElementLocator<W, C, L, E>,
+                                            E extends AbstractPatientElement<W, C, L, E>>
+              extends AbstractBaseObject<W, C>
+           implements FindsElements<W, C, L, E>,
                       WrappedExecutor<D> {
 
-    private final PatientSeleniumConfig<W> config;
-    private final String description;
     private final Supplier<D> webDriverSupplier;
 
     private D driver = null;
@@ -37,7 +38,7 @@ public abstract class AbstractPatientDriver<D extends WebDriver,
     /**
      * Create a new instance of {@link AbstractPatientDriver}.
      *
-     * @param config            the {@link PatientSeleniumConfig} to use for this driver and all objects it creates.
+     * @param config            the {@link C} to use for this driver and all objects it creates.
      *                          May not be null.
      * @param description       the String description fo this driver.
      *                          May not be null or empty.
@@ -46,15 +47,10 @@ public abstract class AbstractPatientDriver<D extends WebDriver,
      *
      * @throws IllegalArgumentException if any argument is null or if the description is empty.
      */
-    public AbstractPatientDriver(PatientSeleniumConfig<W> config,
+    public AbstractPatientDriver(C config,
                                  String description,
                                  Supplier<D> webDriverSupplier) {
-        this.config = validate().withMessage("Cannot create a patient driver with a null config")
-                                .that(config)
-                                .isNotNull();
-        this.description = validate().withMessage("Cannot create a patient driver with a null or empty description")
-                                     .that(description)
-                                     .isNotEmpty();
+        super(config, description);
         this.webDriverSupplier = validate().withMessage("Cannot create a patient driver with a null web driver supplier")
                                            .that(webDriverSupplier)
                                            .isNotNull();
@@ -91,28 +87,9 @@ public abstract class AbstractPatientDriver<D extends WebDriver,
         return buildElementLocator(getLocatorDescription(by), () -> findElements(by));
     }
 
-    @Override
-    public String toString() {
-        return description;
-    }
-
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Protected instance methods
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    /**
-     * @return the {@link PatientSeleniumConfig} for this instance.
-     */
-    protected final PatientSeleniumConfig<W> getConfig() {
-        return config;
-    }
-
-    /**
-     * @return the description for this instance.
-     */
-    protected final String getDescription() {
-        return description;
-    }
 
     /**
      * @return the {@link Supplier} of {@link WebDriver}s for this instance.
@@ -176,7 +153,7 @@ public abstract class AbstractPatientDriver<D extends WebDriver,
         try {
             return execute(d -> (List<W>) d.findElements(by));
         } catch (RuntimeException e) {
-            if (config.isIgnoredLookupException(e.getClass())) {
+            if (getConfig().isIgnoredLookupException(e.getClass())) {
                 return Collections.emptyList();
             }
             throw e;

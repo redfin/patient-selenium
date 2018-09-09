@@ -2,7 +2,6 @@ package com.redfin.selenium.implementation;
 
 import com.redfin.patience.PatientWait;
 import com.redfin.selenium.AbstractPatientElementLocator;
-import com.redfin.selenium.PatientSeleniumConfig;
 import org.openqa.selenium.WebElement;
 
 import java.time.Duration;
@@ -12,9 +11,9 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public final class TestPatientElementLocator
-           extends AbstractPatientElementLocator<WebElement, TestPatientElementLocator, TestPatientElement> {
+           extends AbstractPatientElementLocator<WebElement, TestPatientConfig, TestPatientElementLocator, TestPatientElement> {
 
-    public TestPatientElementLocator(PatientSeleniumConfig<WebElement> config,
+    public TestPatientElementLocator(TestPatientConfig config,
                                      String description,
                                      Supplier<List<WebElement>> elementListSupplier,
                                      PatientWait wait,

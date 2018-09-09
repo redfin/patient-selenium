@@ -21,15 +21,16 @@ import static com.redfin.validity.Validity.validate;
  * Base class for a patient element locator.
  *
  * @param <W>    the type of {@link WebElement} the wrapped element types locate.
+ * @param <C>    the concrete type of {@link AbstractPatientConfig} for the implementing subclass.
  * @param <THIS> the concrete subclass of this element locator.
  * @param <E>    the concrete type of {@link AbstractPatientElement} that this type builds.
  */
 public abstract class AbstractPatientElementLocator<W extends WebElement,
-                                                    THIS extends AbstractPatientElementLocator<W, THIS, E>,
-                                                    E extends AbstractPatientElement<W, THIS, E>> {
+                                                    C extends AbstractPatientConfig<W>,
+                                                    THIS extends AbstractPatientElementLocator<W, C, THIS, E>,
+                                                    E extends AbstractPatientElement<W, C, THIS, E>>
+              extends AbstractBaseObject<W, C> {
 
-    private final PatientSeleniumConfig<W> config;
-    private final String description;
     private final Supplier<List<W>> elementListSupplier;
     private final PatientWait wait;
     private final Duration timeout;
@@ -39,7 +40,7 @@ public abstract class AbstractPatientElementLocator<W extends WebElement,
     /**
      * Create a new {@link AbstractPatientElementLocator} instance.
      *
-     * @param config              the {@link PatientSeleniumConfig} for this and any elements it builds.
+     * @param config              the {@link C} for this and any elements it builds.
      *                            May not be null.
      * @param description         the String description for this element locator.
      *                            May not be null or empty.
@@ -55,14 +56,13 @@ public abstract class AbstractPatientElementLocator<W extends WebElement,
      *
      * @throws IllegalArgumentException if any argument is null, if description is empty, or if timeout is negative.
      */
-    public AbstractPatientElementLocator(PatientSeleniumConfig<W> config,
+    public AbstractPatientElementLocator(C config,
                                          String description,
                                          Supplier<List<W>> elementListSupplier,
                                          PatientWait wait,
                                          Duration timeout,
                                          Predicate<W> filter) {
-        this.config = validate().that(config).isNotNull();
-        this.description = validate().that(description).isNotEmpty();
+        super(config, description);
         this.elementListSupplier = validate().that(elementListSupplier).isNotNull();
         this.wait = validate().that(wait).isNotNull();
         this.timeout = validate().that(timeout).isGreaterThanOrEqualToZero();
@@ -188,28 +188,9 @@ public abstract class AbstractPatientElementLocator<W extends WebElement,
         return clone(getWait(), getTimeout(), filter);
     }
 
-    @Override
-    public String toString() {
-        return description;
-    }
-
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Protected instance methods
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    /**
-     * @return the {@link PatientSeleniumConfig} for this instance.
-     */
-    protected final PatientSeleniumConfig<W> getConfig() {
-        return config;
-    }
-
-    /**
-     * @return the String description of this instance.
-     */
-    protected final String getDescription() {
-        return description;
-    }
 
     /**
      * @return the {@link Supplier} of a list of elements for this instance.
@@ -301,7 +282,7 @@ public abstract class AbstractPatientElementLocator<W extends WebElement,
                 return Optional.of(foundElements.get(index));
             }
         } catch (RuntimeException e) {
-            if (!config.isIgnoredLookupException(e.getClass())) {
+            if (!getConfig().isIgnoredLookupException(e.getClass())) {
                 throw e;
             }
         }
@@ -324,7 +305,7 @@ public abstract class AbstractPatientElementLocator<W extends WebElement,
                 try {
                     return elementListSupplier.get();
                 } catch (RuntimeException e) {
-                    if (config.isIgnoredLookupException(e.getClass())) {
+                    if (getConfig().isIgnoredLookupException(e.getClass())) {
                         return null;
                     }
                     throw e;

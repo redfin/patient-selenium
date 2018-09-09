@@ -3,6 +3,7 @@ package com.redfin.selenium;
 import com.redfin.patience.PatientWait;
 import com.redfin.selenium.contracts.FindsElementsTestContract;
 import com.redfin.selenium.contracts.WrappedExecutorTestContract;
+import com.redfin.selenium.implementation.TestPatientConfig;
 import com.redfin.selenium.implementation.TestPatientElement;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
@@ -41,7 +42,7 @@ final class AbstractPatientElementTest {
         @ParameterizedTest
         @ArgumentsSource(ValidConstructorArguments.class)
         @DisplayName("instantiates successfully when the constructor is called with valid arguments")
-        void testConstructedWithValidArguments(PatientSeleniumConfig<WebElement> config,
+        void testConstructedWithValidArguments(TestPatientConfig config,
                                                String description,
                                                Supplier<Optional<WebElement>> elementSupplier,
                                                PatientWait wait,
@@ -53,7 +54,7 @@ final class AbstractPatientElementTest {
         @ParameterizedTest
         @ArgumentsSource(InvalidConstructorArguments.class)
         @DisplayName("throws an exception when the constructor is called with invalid arguments")
-        void testConstructedWithInvalidArguments(PatientSeleniumConfig<WebElement> config,
+        void testConstructedWithInvalidArguments(TestPatientConfig config,
                                                  String description,
                                                  Supplier<Optional<WebElement>> elementSupplier,
                                                  PatientWait wait,
@@ -227,7 +228,7 @@ final class AbstractPatientElementTest {
         @Test
         @DisplayName("getter methods return given values")
         void testGettersReturnExpectedValues() {
-            PatientSeleniumConfig<WebElement> config = getMockConfig();
+            TestPatientConfig config = getMockConfig();
             String description = "fooBarBazDescription";
             Supplier<Optional<WebElement>> elementSupplier = getMockElementSupplier();
             PatientWait wait = mock(PatientWait.class);
@@ -294,10 +295,10 @@ final class AbstractPatientElementTest {
             @DisplayName("keeps retrying on ignored exceptions up to max execution attempts")
             void testIgnoresIgnoredActionExceptionsUpToMaxExecutionAttempts() {
                 int maxAttempts = 3;
-                PatientSeleniumConfig<WebElement> config = PatientSeleniumConfig.builder()
-                                                                                .withMaxElemementActionAttempts(maxAttempts)
-                                                                                .withIgnoredActionExceptions(IllegalStateException.class)
-                                                                                .build();
+                TestPatientConfig config = TestPatientConfig.builder()
+                                                            .withMaxElemementActionAttempts(maxAttempts)
+                                                            .withIgnoredActionExceptions(IllegalStateException.class)
+                                                            .build();
                 AtomicInteger lookupCounter = new AtomicInteger(0);
                 TestPatientElement instance = getInstance(config,
                                                           "fooBarBazDescription",
@@ -331,7 +332,7 @@ final class AbstractPatientElementTest {
 
         @Override
         public TestPatientElement getExecutor(WebElement wrappedObject) {
-            PatientSeleniumConfig<WebElement> config = PatientSeleniumConfig.builder().build();
+            TestPatientConfig config = TestPatientConfig.builder().build();
             TestPatientElement instance = getInstance(config,
                                                       "fooBarBaz",
                                                       getMockElementSupplier(),
@@ -373,7 +374,7 @@ final class AbstractPatientElementTest {
                            timeout);
     }
 
-    private static TestPatientElement getInstance(PatientSeleniumConfig<WebElement> config,
+    private static TestPatientElement getInstance(TestPatientConfig config,
                                                   String description,
                                                   Supplier<Optional<WebElement>> elementSupplier,
                                                   PatientWait wait,

@@ -1,7 +1,6 @@
 package com.redfin.selenium.implementation;
 
 import com.redfin.selenium.AbstractPatientDriver;
-import com.redfin.selenium.PatientSeleniumConfig;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -10,9 +9,9 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public final class TestPatientDriver
-           extends AbstractPatientDriver<WebDriver, WebElement, TestPatientElementLocator, TestPatientElement> {
+           extends AbstractPatientDriver<WebDriver, WebElement, TestPatientConfig, TestPatientElementLocator, TestPatientElement> {
 
-    public TestPatientDriver(PatientSeleniumConfig<WebElement> config,
+    public TestPatientDriver(TestPatientConfig config,
                              String description,
                              Supplier<WebDriver> webDriverSupplier) {
         super(config, description, webDriverSupplier);

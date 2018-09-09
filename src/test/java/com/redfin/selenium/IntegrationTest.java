@@ -1,5 +1,6 @@
 package com.redfin.selenium;
 
+import com.redfin.selenium.implementation.TestPatientConfig;
 import com.redfin.selenium.implementation.TestPatientDriver;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -27,7 +28,7 @@ final class IntegrationTest {
         when(outerElement.findElements(any())).thenReturn(Collections.singletonList(innerElement));
         WebDriver driver = mock(WebDriver.class);
         when(driver.findElements(any())).thenReturn(Collections.singletonList(outerElement));
-        TestPatientDriver instance = new TestPatientDriver(PatientSeleniumConfig.builder().build(),
+        TestPatientDriver instance = new TestPatientDriver(TestPatientConfig.builder().build(),
                                                            "driverDescription",
                                                            () -> driver);
         String actualFinalText = instance.find(By.cssSelector(".foo"))

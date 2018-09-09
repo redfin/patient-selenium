@@ -21,7 +21,7 @@ Via maven:
 <dependency>
     <groupId>com.redfin</groupId>
     <artifactId>patient-selenium</artifactId>
-    <version>2.1.0-RC2</version>
+    <version>2.1.0-RC3</version>
 </dependency>
 ```
 

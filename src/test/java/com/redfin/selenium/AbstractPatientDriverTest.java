@@ -2,6 +2,7 @@ package com.redfin.selenium;
 
 import com.redfin.selenium.contracts.FindsElementsTestContract;
 import com.redfin.selenium.contracts.WrappedExecutorTestContract;
+import com.redfin.selenium.implementation.TestPatientConfig;
 import com.redfin.selenium.implementation.TestPatientDriver;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -13,7 +14,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -43,7 +43,7 @@ final class AbstractPatientDriverTest {
         @ParameterizedTest
         @ArgumentsSource(InvalidConstructorArguments.class)
         @DisplayName("throws an exception when the constructor is called with invalid arguments")
-        void testConstructedWithInvalidArguments(PatientSeleniumConfig<WebElement> config,
+        void testConstructedWithInvalidArguments(TestPatientConfig config,
                                                  String description,
                                                  Supplier<WebDriver> webDriverSupplier) {
             Assertions.assertThrows(IllegalArgumentException.class,
@@ -59,7 +59,7 @@ final class AbstractPatientDriverTest {
         @Test
         @DisplayName("returns expected values from the getter methods")
         void testGettersReturnGivenValues() {
-            PatientSeleniumConfig<WebElement> config = getMockConfig();
+            TestPatientConfig config = getMockConfig();
             String description = "fooBarBaz";
             Supplier<WebDriver> driverSupplier = getMockDriverSupplier();
             TestPatientDriver driver = getInstance(config, description, driverSupplier);
@@ -72,7 +72,7 @@ final class AbstractPatientDriverTest {
         @Test
         @DisplayName("starts with a null driver cache")
         void testStartsWithNullCache() {
-            PatientSeleniumConfig<WebElement> config = getMockConfig();
+            TestPatientConfig config = getMockConfig();
             String description = "fooBarBaz";
             WebDriver driver = mock(WebDriver.class);
             Supplier<WebDriver> driverSupplier = () -> driver;
@@ -82,7 +82,7 @@ final class AbstractPatientDriverTest {
         @Test
         @DisplayName("starts with a null driver cache")
         void testExtractsExpectedValueFromSupplierForCache() {
-            PatientSeleniumConfig<WebElement> config = getMockConfig();
+            TestPatientConfig config = getMockConfig();
             String description = "fooBarBaz";
             WebDriver driver = mock(WebDriver.class);
             Supplier<WebDriver> driverSupplier = () -> driver;
@@ -94,7 +94,7 @@ final class AbstractPatientDriverTest {
         @Test
         @DisplayName("returns the given cached value")
         void testReturnsGivenCachedValue() {
-            PatientSeleniumConfig<WebElement> config = getMockConfig();
+            TestPatientConfig config = getMockConfig();
             String description = "fooBarBaz";
             WebDriver driver = mock(WebDriver.class);
             Supplier<WebDriver> driverSupplier = getMockDriverSupplier();
@@ -139,7 +139,7 @@ final class AbstractPatientDriverTest {
         return getInstance(getMockConfig(), "hello", getMockDriverSupplier());
     }
 
-    private static TestPatientDriver getInstance(PatientSeleniumConfig<WebElement> config,
+    private static TestPatientDriver getInstance(TestPatientConfig config,
                                                  String description,
                                                  Supplier<WebDriver> webDriverSupplier) {
         return new TestPatientDriver(config, description, webDriverSupplier);

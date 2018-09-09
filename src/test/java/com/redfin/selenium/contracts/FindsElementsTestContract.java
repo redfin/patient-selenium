@@ -1,6 +1,7 @@
 package com.redfin.selenium.contracts;
 
 import com.redfin.selenium.FindsElements;
+import com.redfin.selenium.implementation.TestPatientConfig;
 import com.redfin.selenium.implementation.TestPatientElement;
 import com.redfin.selenium.implementation.TestPatientElementLocator;
 import org.junit.jupiter.api.Assertions;
@@ -15,7 +16,7 @@ import org.openqa.selenium.WebElement;
  *
  * @param <F> the type of the implementing class under test.
  */
-public interface FindsElementsTestContract<F extends FindsElements<WebElement, TestPatientElementLocator, TestPatientElement>> {
+public interface FindsElementsTestContract<F extends FindsElements<WebElement, TestPatientConfig, TestPatientElementLocator, TestPatientElement>> {
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Test cases

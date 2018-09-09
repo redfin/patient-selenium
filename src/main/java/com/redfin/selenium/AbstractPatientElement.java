@@ -23,17 +23,18 @@ import static com.redfin.validity.Validity.validate;
  * Base class for a patient element.
  *
  * @param <W>    the type of {@link WebElement} this wraps.
+ * @param <C>    the concrete type of {@link AbstractPatientConfig} for the implementing subclass.
  * @param <L>    the concrete type of {@link AbstractPatientElementLocator} that this type builds.
  * @param <THIS> the concrete subclass of this element.
  */
 public abstract class AbstractPatientElement<W extends WebElement,
-                                             L extends AbstractPatientElementLocator<W, L, THIS>,
-                                             THIS extends AbstractPatientElement<W, L, THIS>>
-           implements FindsElements<W, L, THIS>,
+                                             C extends AbstractPatientConfig<W>,
+                                             L extends AbstractPatientElementLocator<W, C, L, THIS>,
+                                             THIS extends AbstractPatientElement<W, C, L, THIS>>
+              extends AbstractBaseObject<W, C>
+           implements FindsElements<W, C, L, THIS>,
                       WrappedExecutor<W> {
 
-    private final PatientSeleniumConfig<W> config;
-    private final String description;
     private final Supplier<Optional<W>> elementSupplier;
     private final PatientWait wait;
     private final Duration timeout;
@@ -43,7 +44,7 @@ public abstract class AbstractPatientElement<W extends WebElement,
     /**
      * Create a new, lazily located, instance of {@link AbstractPatientElement}.
      *
-     * @param config          the {@link PatientSeleniumConfig} for this element.
+     * @param config          the {@link C} for this element.
      *                        May not be null.
      * @param description     the String description of this element.
      *                        May not be null or empty.
@@ -54,13 +55,12 @@ public abstract class AbstractPatientElement<W extends WebElement,
      * @param timeout         the {@link Duration} timeout used when waiting for an element.
      *                        May not be null or negative.
      */
-    public AbstractPatientElement(PatientSeleniumConfig<W> config,
+    public AbstractPatientElement(C config,
                                   String description,
                                   Supplier<Optional<W>> elementSupplier,
                                   PatientWait wait,
                                   Duration timeout) {
-        this.config = validate().that(config).isNotNull();
-        this.description = validate().that(description).isNotEmpty();
+        super(config, description);
         this.elementSupplier = validate().that(elementSupplier).isNotNull();
         this.wait = validate().that(wait).isNotNull();
         this.timeout = validate().that(timeout).isGreaterThanOrEqualToZero();
@@ -152,28 +152,9 @@ public abstract class AbstractPatientElement<W extends WebElement,
         return buildElementLocator(getLocatorDescription(by), () -> findChildElements(by));
     }
 
-    @Override
-    public String toString() {
-        return description;
-    }
-
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Protected instance methods
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    /**
-     * @return the given {@link PatientSeleniumConfig} for this instance.
-     */
-    protected final PatientSeleniumConfig<W> getConfig() {
-        return config;
-    }
-
-    /**
-     * @return the given String description for this instance.
-     */
-    protected final String getDescription() {
-        return description;
-    }
 
     /**
      * @return the given {@link Supplier} of an element for this instance.
@@ -243,7 +224,7 @@ public abstract class AbstractPatientElement<W extends WebElement,
 
     private <R> R execute(Function<W, R> function) {
         RuntimeException caught = null;
-        for (int i = 0; i < config.getMaxElementActionAttempts(); i++) {
+        for (int i = 0; i < getConfig().getMaxElementActionAttempts(); i++) {
             try {
                 if (null == cachedElement) {
                     cachedElement = this.getElementPatiently()
@@ -265,7 +246,7 @@ public abstract class AbstractPatientElement<W extends WebElement,
                     // Do nothing here, we have already cleared the cache, stale
                     // exceptions can't be an ignored action type since they are
                     // always ignored
-                } else if (!config.isIgnoredActionException(e.getClass())) {
+                } else if (!getConfig().isIgnoredActionException(e.getClass())) {
                     // Not an ignored type, propagate the exception
                     throw e;
                 }
@@ -301,7 +282,7 @@ public abstract class AbstractPatientElement<W extends WebElement,
         } catch (RuntimeException e) {
             // In the case of any other exception clear the cache and check if it is an ignored type
             cachedElement = null;
-            if (!config.isIgnoredLookupException(e.getClass())) {
+            if (!getConfig().isIgnoredLookupException(e.getClass())) {
                 throw e;
             }
         }
