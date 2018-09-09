@@ -8,7 +8,7 @@
 
     <groupId>com.redfin</groupId>
     <artifactId>patient-selenium</artifactId>
-    <version>2.1.0-RC1</version>
+    <version>2.1.0-RC2</version>
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
 
@@ -91,8 +91,8 @@
             </dependency>
             <dependency>
                 <groupId>org.seleniumhq.selenium</groupId>
-                <artifactId>selenium-java</artifactId>
-                <version>3.14.0</version>
+                <artifactId>selenium-api</artifactId>
+                <version>3.12.0</version>
             </dependency>
 
             <dependency>
@@ -144,7 +144,7 @@
         </dependency>
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-java</artifactId>
+            <artifactId>selenium-api</artifactId>
         </dependency>
 
         <!-- Test Dependencies -->
