@@ -16,8 +16,8 @@ import static com.redfin.validity.Validity.validate;
  * Base class for a page object initializer.
  */
 public abstract class AbstractPageObjectInitializer<W extends WebElement,
-                                                    L extends AbstractPatientElementLocator<W, L, E>,
-                                                    E extends AbstractPatientElement<W, L, E>> {
+        L extends AbstractPatientElementLocator<W, L, E>,
+        E extends AbstractPatientElement<W, L, E>> {
 
     private final List<PageObject> visitedObjects = new ArrayList<>();
 
@@ -58,7 +58,7 @@ public abstract class AbstractPageObjectInitializer<W extends WebElement,
                   .that(findsElements)
                   .isNotNull();
         try {
-            initializePageHelper(page, findsElements);
+            initializePageHelper(page, null, findsElements);
         } catch (RuntimeException e) {
             if (e instanceof PageObjectInitializationException) {
                 // Simply propagate an exception
@@ -76,12 +76,18 @@ public abstract class AbstractPageObjectInitializer<W extends WebElement,
     /**
      * Pre-process the page object.
      *
-     * @param page the {@link PageObject} to be pre-processed.
-     *             Will never be null.
+     * @param page          the {@link PageObject} to be pre-processed.
+     *                      Will never be null.
+     * @param field         the {@link Field} that declared the current page.
+     *                      Will be null if the page is the root.
+     * @param findsElements the {@link FindsElements} for the current initialization.
+     *                      Will never be null.
      *
      * @throws PageObjectInitializationException if there are any exception states during the method.
      */
-    protected abstract void preProcessPage(PageObject page);
+    protected abstract void preProcessPage(PageObject page,
+                                           Field field,
+                                           FindsElements<W, L, E> findsElements);
 
     /**
      * Return an optional with the value to set for the given field on the given
@@ -108,6 +114,7 @@ public abstract class AbstractPageObjectInitializer<W extends WebElement,
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     private void initializePageHelper(PageObject page,
+                                      Field fieldOfPage,
                                       FindsElements<W, L, E> findsElements) {
         // Only continue with the given page object if it hasn't been initialized
         // already. This protects us from an infinite loop in case of a cycle
@@ -115,7 +122,7 @@ public abstract class AbstractPageObjectInitializer<W extends WebElement,
         if (!alreadyVisited(page)) {
             visitedObjects.add(page);
             // Pre-process the page
-            preProcessPage(page);
+            preProcessPage(page, fieldOfPage, findsElements);
             // Next get all the declared fields on the page
             Set<Field> fields = getAllDeclaredFields(page);
             for (Field field : fields) {
@@ -177,7 +184,7 @@ public abstract class AbstractPageObjectInitializer<W extends WebElement,
         // Check if a non-null current value is a page object instance
         if (currentValue instanceof PageObject) {
             // The field's value is a page object, recursively initialize that as well
-            initializePageHelper((PageObject) currentValue, findsElements);
+            initializePageHelper((PageObject) currentValue, field, findsElements);
         }
     }
 }

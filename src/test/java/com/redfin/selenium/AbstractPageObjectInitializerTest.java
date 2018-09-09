@@ -138,7 +138,9 @@ final class AbstractPageObjectInitializerTest {
         }
 
         @Override
-        protected void preProcessPage(PageObject page) { }
+        protected void preProcessPage(PageObject page,
+                                      Field field,
+                                      FindsElements<WebElement, TestPatientElementLocator, TestPatientElement> findsElements) { }
 
         @Override
         protected Optional<Object> getValueForField(PageObject page, Field field, FindsElements findsElements) {

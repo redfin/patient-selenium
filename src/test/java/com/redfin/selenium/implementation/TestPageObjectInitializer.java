@@ -13,7 +13,9 @@ public final class TestPageObjectInitializer
            extends AbstractPageObjectInitializer<WebElement, TestPatientElementLocator, TestPatientElement> {
 
     @Override
-    protected void preProcessPage(PageObject page) {
+    protected void preProcessPage(PageObject page,
+                                  Field field,
+                                  FindsElements<WebElement, TestPatientElementLocator, TestPatientElement> findsElements) {
         // do nothing here
     }
 
