@@ -72,13 +72,15 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
      *             May not be null.
      *
      * @throws IllegalArgumentException          if page is null.
-     * @throws PageObjectInitializationException if there are any issues during the initialization process.
+     * @throws PageObjectInitializationException if there are any issues during the initialization process
+     *                                           or if the page has already been initialized.
      */
     public final void initializePage(AbstractBasePageObject<D, W, C, P, L, E> page) {
         validate().withMessage("Cannot initialize a null page object")
                   .that(page)
                   .isNotNull();
         try {
+            page.setDriver(driver);
             initializeHelper(page, driver);
         } catch (RuntimeException e) {
             if (e instanceof PageObjectInitializationException) {
