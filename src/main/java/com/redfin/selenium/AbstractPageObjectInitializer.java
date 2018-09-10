@@ -188,8 +188,10 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
             // Recursively initialize the widget with the base element as the root
             initializeHelper(widget, baseElement);
         } else if (currentValue instanceof AbstractBasePageObject<?, ?, ?, ?, ?, ?>) {
-            // The field is non-null and a page object, recursively initialize it with the current finds elements as the root
-            initializeHelper(currentValue, findsElements);
+            // The field is non-null and a page object, set the driver for the page
+            ((AbstractBasePageObject<?, ?, ?, P, ?, ?>) currentValue).setDriver(driver);
+            // Recursively initialize the page with the driver as the root
+            initializeHelper(currentValue, driver);
         }
     }
 }
