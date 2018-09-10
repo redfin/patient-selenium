@@ -182,18 +182,24 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
                     throw new PageObjectInitializationException("Unable to set the field: " + field + ", with the value: " + newValue);
                 }
             });
-        } else if (currentValue instanceof AbstractBaseWidgetObject<?, ?, ?, ?>) {
-            // The field is non-null and a widget type, build an element to set as the widget base
-            AbstractBaseWidgetObject<W, C, L, E> widget = (AbstractBaseWidgetObject<W, C, L, E>) currentValue;
-            E baseElement = buildElement(field, findsElements);
-            widget.setWidgetElement(baseElement);
-            // Recursively initialize the widget with the base element as the root
-            initializeHelper(widget, baseElement);
-        } else if (currentValue instanceof AbstractBasePageObject<?, ?, ?, ?, ?, ?>) {
-            // The field is non-null and a page object, set the driver for the page
-            ((AbstractBasePageObject<?, ?, ?, P, ?, ?>) currentValue).setDriver(driver);
-            // Recursively initialize the page with the driver as the root
-            initializeHelper(currentValue, driver);
+        } else {
+            // The current value isn't null, check if it's already been initialized
+            if (!alreadyVisited(currentValue)) {
+                // It hasn't been initialized, recursively do so if necessary
+                if (currentValue instanceof AbstractBaseWidgetObject<?, ?, ?, ?>) {
+                    // The field is non-null and a widget type, build an element to set as the widget base
+                    AbstractBaseWidgetObject<W, C, L, E> widget = (AbstractBaseWidgetObject<W, C, L, E>) currentValue;
+                    E baseElement = buildElement(field, findsElements);
+                    widget.setWidgetElement(baseElement);
+                    // Recursively initialize the widget with the base element as the root
+                    initializeHelper(widget, baseElement);
+                } else if (currentValue instanceof AbstractBasePageObject<?, ?, ?, ?, ?, ?>) {
+                    // The field is non-null and a page object, set the driver for the page
+                    ((AbstractBasePageObject<?, ?, ?, P, ?, ?>) currentValue).setDriver(driver);
+                    // Recursively initialize the page with the driver as the root
+                    initializeHelper(currentValue, driver);
+                }
+            }
         }
     }
 }
