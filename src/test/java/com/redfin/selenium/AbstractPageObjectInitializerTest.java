@@ -17,6 +17,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.lang.reflect.Field;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import static org.mockito.Mockito.mock;
@@ -160,6 +161,11 @@ final class AbstractPageObjectInitializerTest {
         @Override
         protected Class<TestPatientElementLocator> getElementLocatorClass() {
             return TestPatientElementLocator.class;
+        }
+
+        @Override
+        protected <T extends AbstractBaseWidgetObject<WebElement, TestPatientConfig, TestPatientElementLocator, TestPatientElement>> Optional<T> buildWidget(Field field) {
+            return Optional.empty();
         }
 
         @Override

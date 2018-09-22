@@ -1,5 +1,6 @@
 package com.redfin.selenium.implementation;
 
+import com.redfin.selenium.AbstractBaseWidgetObject;
 import com.redfin.selenium.AbstractPageObjectInitializer;
 import com.redfin.selenium.FindsElements;
 import com.redfin.selenium.PageObjectInitializationException;
@@ -8,6 +9,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.lang.reflect.Field;
+import java.util.Optional;
 
 public final class TestPageObjectInitializer
            extends AbstractPageObjectInitializer<WebDriver,
@@ -29,6 +31,11 @@ public final class TestPageObjectInitializer
     @Override
     protected Class<TestPatientElementLocator> getElementLocatorClass() {
         return TestPatientElementLocator.class;
+    }
+
+    @Override
+    protected <T extends AbstractBaseWidgetObject<WebElement, TestPatientConfig, TestPatientElementLocator, TestPatientElement>> Optional<T> buildWidget(Field field) {
+        return Optional.empty();
     }
 
     @Override

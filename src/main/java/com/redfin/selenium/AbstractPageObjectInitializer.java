@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.redfin.validity.Validity.validate;
 
@@ -59,6 +60,7 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
      * <li>Find all fields of the page object</li>
      * <li>For each field that is null check if it is an element or an element locator</li>
      * <li>If is it an element or element locator type, create those and set the field's value</li>
+     * <li>If it is a widget, check if we can create it and set the field value if so, then recursively initialize it.</li>
      * <li>If the field was not-null check if it is a widget</li>
      * <li>If it is a widget create an element for the field and set that as the base then recursively initialize the widget</li>
      * <li>If the field was not-null and not a widget check if it is a page object</li>
@@ -99,6 +101,8 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
     protected abstract Class<E> getElementClass();
 
     protected abstract Class<L> getElementLocatorClass();
+
+    protected abstract <T extends AbstractBaseWidgetObject<W, C, L, E>> Optional<T> buildWidget(Field field);
 
     protected abstract E buildElement(Field field,
                                       FindsElements<W, C, L, E> findsElements);
@@ -165,13 +169,18 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
         }
         if (null == currentValue) {
             // Field's value is currently null, check the type of the field
-            Optional<Object> builtValue = Optional.empty();
+            Optional<?> builtValue = Optional.empty();
+            AtomicBoolean isWidget = new AtomicBoolean(false);
             if (getElementClass().equals(field.getType())) {
                 // An element, build it
                 builtValue = Optional.of(buildElement(field, findsElements));
             } else if (getElementLocatorClass().equals(field.getType())) {
                 // An element locator, build it
                 builtValue = Optional.of(buildElementLocator(field, findsElements));
+            } else if (AbstractBaseWidgetObject.class.isAssignableFrom(field.getType())) {
+                // Is a widget
+                builtValue = buildWidget(field);
+                isWidget.set(true);
             }
             // Check if an element or element locator was built
             builtValue.ifPresent(newValue -> {
@@ -180,6 +189,10 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
                     field.set(object, newValue);
                 } catch (IllegalAccessException e) {
                     throw new PageObjectInitializationException("Unable to set the field: " + field + ", with the value: " + newValue);
+                }
+                // In the case of a widget we want to rerun this method with the now non-null widget
+                if (isWidget.get()) {
+                    initializeField(newValue, field, findsElements);
                 }
             });
         } else {
