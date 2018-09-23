@@ -34,7 +34,7 @@ public final class TestPageObjectInitializer
     }
 
     @Override
-    protected <T extends AbstractBaseWidgetObject<WebElement, TestPatientConfig, TestPatientElementLocator, TestPatientElement>> Optional<T> buildWidget(Field field) {
+    protected <T extends AbstractBaseWidgetObject<WebElement, TestPatientConfig, TestPatientElementLocator, TestPatientElement>> Optional<T> buildWidget(Class<T> clazz) {
         return Optional.empty();
     }
 

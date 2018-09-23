@@ -102,7 +102,7 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
 
     protected abstract Class<L> getElementLocatorClass();
 
-    protected abstract <T extends AbstractBaseWidgetObject<W, C, L, E>> Optional<T> buildWidget(Field field);
+    protected abstract <T extends AbstractBaseWidgetObject<W, C, L, E>> Optional<T> buildWidget(Class<T> clazz);
 
     protected abstract E buildElement(Field field,
                                       FindsElements<W, C, L, E> findsElements);
@@ -179,7 +179,8 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
                 builtValue = Optional.of(buildElementLocator(field, findsElements));
             } else if (AbstractBaseWidgetObject.class.isAssignableFrom(field.getType())) {
                 // Is a widget
-                builtValue = buildWidget(field);
+                Class<?> clazz = field.getType();
+                builtValue = buildWidget((Class<AbstractBaseWidgetObject<W, C, L, E>>) clazz);
                 isWidget.set(true);
             }
             // Check if an element or element locator was built
@@ -190,9 +191,10 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
                 } catch (IllegalAccessException e) {
                     throw new PageObjectInitializationException("Unable to set the field: " + field + ", with the value: " + newValue);
                 }
-                // In the case of a widget we want to rerun this method with the now non-null widget
+                // In the case of a widget that was built, we need to rerun this method with the same values for the
+                // now non-null widget
                 if (isWidget.get()) {
-                    initializeField(newValue, field, findsElements);
+                    initializeField(object, field, findsElements);
                 }
             });
         } else {
