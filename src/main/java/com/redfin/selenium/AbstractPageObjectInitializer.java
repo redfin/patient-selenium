@@ -293,7 +293,7 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
                 if (isWidget.get()) {
                     if (builtValue.get() instanceof AbstractBaseWidgetObject<?, ?, ?, ?>) {
                         AbstractBaseWidgetObject<?, ?, ?, ?> widget = (AbstractBaseWidgetObject<?, ?, ?, ?>) builtValue.get();
-                        if (null != widget.getWidgetElement()) {
+                        if (widget.isWidgetElementSet()) {
                             throw new PageObjectInitializationException(String.format("Received a widget from %s with a non-null base element for field: %s", buildMethodNameString, field));
                         }
                     } else {
