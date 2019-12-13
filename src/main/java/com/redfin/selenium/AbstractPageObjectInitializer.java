@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -70,10 +71,11 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
      * and ready to use.
      *
      * @param page the {@link AbstractBasePageObject} to initialize.
-     *             May not be null and may not have been initialized already.
+     *             May not be null and may not have been already initialized.
      *
      * @throws IllegalArgumentException          if page is null.
-     * @throws PageObjectInitializationException if there are any issues during the initialization process.
+     * @throws PageObjectInitializationException if there are any issues during the initialization process
+     *                                           or if the page has already been initialized.
      */
     public final void initializePage(AbstractBasePageObject<D, W, C, P, L, E> page) {
         validate().withMessage("Cannot initialize a null page object")
@@ -112,12 +114,13 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
      * and ready to use.
      *
      * @param widget        the {@link AbstractBaseWidgetObject} to initialize.
-     *                      May not be null.
+     *                      May not be null and may not have already been initialized.
      * @param widgetElement the {@link E} element that is the base element of the widget.
      *                      May not be null.
      *
      * @throws IllegalArgumentException          if widget or widgetElement is null.
-     * @throws PageObjectInitializationException if there are any issues during the initialization process.
+     * @throws PageObjectInitializationException if there are any issues during the initialization process
+     *                                           or if the widget has already been initialized.
      */
     public final void initializeWidget(AbstractBaseWidgetObject<W, C, L, E> widget,
                                        E widgetElement) {
@@ -154,17 +157,29 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
     protected abstract Class<L> getElementLocatorClass();
 
     /**
-     * @param field the Field of the declared widget.
-     *              May not be null.
-     * @param <T>   the type of the widget to be returned.
+     * Create an instance of the desired widget type. Should not return null. The
+     * base element should not be set yet, the page object initialization will create an
+     * element for the base widget with this widget instance and the field declaring
+     * the widget. The page object initializer will throw a {@link PageObjectInitializationException}
+     * if the implementation of this method returns a null value or if the built
+     * widget has a non-null base element.
      *
-     * @return the instantiated widget object. Should not return null.
+     * @param widgetClass the Class object of the widget to build.
+     *                    May not be null.
+     * @param <T>         the type of the widget to be returned.
      *
-     * @throws IllegalArgumentException if field is null.
+     * @return an instantiated widget object. Should not return null.
+     * The base element of the widget should not be set yet.
+     *
+     * @throws IllegalArgumentException if widgetClass is null.
      */
-    protected abstract <T extends AbstractBaseWidgetObject<W, C, L, E>> T buildWidget(Field field);
+    protected abstract <T extends AbstractBaseWidgetObject<W, C, L, E>> T buildWidget(Class<T> widgetClass);
 
     /**
+     * Create an instance of the desired element. The page object initializer will throw
+     * a {@link PageObjectInitializationException} if the implementation of this method
+     * returns a null value.
+     *
      * @param field         the Field declaring the element.
      *                      May not be null.
      * @param findsElements the parent {@link FindsElements} to use to locate the desired element.
@@ -178,6 +193,10 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
                                       FindsElements<W, C, L, E> findsElements);
 
     /**
+     * Create an instance of the desired element locator. The page object initializer will throw
+     * a {@link PageObjectInitializationException} if the implementation of this method
+     * returns a null value.
+     *
      * @param field         the Field declaring the element locator.
      *                      May not be null.
      * @param findsElements the parent {@link FindsElements} to use to locate the desired element.
@@ -196,12 +215,12 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
 
     private void initializeHelper(Object object,
                                   FindsElements<W, C, L, E> findsElements) {
-        // Only continue with the given page object if it hasn't been initialized
+        // Only continue with the given object if it hasn't been initialized
         // already. This protects us from an infinite loop in case of a cycle
         // in the object graph.
         if (!alreadyVisited(object)) {
             visitedObjects.add(object);
-            // Next get all the declared fields on the page
+            // Next get all the declared fields on the object
             Set<Field> fields = getAllDeclaredFields(object);
             for (Field field : fields) {
                 // Process each field
@@ -249,33 +268,53 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
         }
         if (null == currentValue) {
             // Field's value is currently null, check the type of the field
-            Object builtValue = null;
+            Optional<?> builtValue = Optional.empty();
             AtomicBoolean isWidget = new AtomicBoolean(false);
+            String buildMethodNameString = null;
             if (getElementClass().equals(field.getType())) {
                 // An element, build it
-                builtValue = buildElement(field, findsElements);
+                builtValue = Optional.ofNullable(buildElement(field, findsElements));
+                buildMethodNameString = "buildElement";
             } else if (getElementLocatorClass().equals(field.getType())) {
                 // An element locator, build it
-                builtValue = buildElementLocator(field, findsElements);
+                builtValue = Optional.ofNullable(buildElementLocator(field, findsElements));
+                buildMethodNameString = "buildElementLocator";
             } else if (AbstractBaseWidgetObject.class.isAssignableFrom(field.getType())) {
                 // A widget, build it and set the boolean so we can re-initialize it
-                builtValue = buildWidget(field);
+                builtValue = Optional.ofNullable(buildWidget((Class<AbstractBaseWidgetObject<W, C, L, E>>) field.getType()));
+                buildMethodNameString = "buildWidget";
                 isWidget.set(true);
             }
+            // Validate the contents of the optional if a build method String was set
+            if (null != buildMethodNameString) {
+                if (!builtValue.isPresent()) {
+                    throw new PageObjectInitializationException(String.format("Received a null value from the %s method with the field: %s", buildMethodNameString, field));
+                }
+                if (isWidget.get()) {
+                    if (builtValue.get() instanceof AbstractBaseWidgetObject<?, ?, ?, ?>) {
+                        AbstractBaseWidgetObject<?, ?, ?, ?> widget = (AbstractBaseWidgetObject<?, ?, ?, ?>) builtValue.get();
+                        if (null != widget.getWidgetElement()) {
+                            throw new PageObjectInitializationException(String.format("Received a widget from %s with a non-null base element for field: %s", buildMethodNameString, field));
+                        }
+                    } else {
+                        throw new PageObjectInitializationException(String.format("Received a non-widget object from the %s method for field: %s", buildMethodNameString, field));
+                    }
+                }
+            }
             // Check if a value was built
-            if (null != builtValue) {
+            builtValue.ifPresent(newValue -> {
                 // An object was built, save it to the field for the object
                 try {
-                    field.set(object, builtValue);
+                    field.set(object, newValue);
                 } catch (IllegalAccessException e) {
-                    throw new PageObjectInitializationException("Unable to set the field: " + field + ", with the value: " + builtValue);
+                    throw new PageObjectInitializationException("Unable to set the field: " + field + ", with the value: " + newValue);
                 }
                 // In the case of a widget that was built, we need to rerun this method with the same values for the
                 // now non-null widget
                 if (isWidget.get()) {
                     initializeField(object, field, findsElements);
                 }
-            }
+            });
         } else {
             // The current value isn't null, check if it's already been initialized
             if (!alreadyVisited(currentValue)) {
@@ -285,7 +324,7 @@ public abstract class AbstractPageObjectInitializer<D extends WebDriver,
                     AbstractBaseWidgetObject<W, C, L, E> widget = (AbstractBaseWidgetObject<W, C, L, E>) currentValue;
                     E baseElement = buildElement(field, findsElements);
                     widget.setWidgetElement(baseElement);
-                    // Recursively initialize the widget with the base element as the root
+                    // Recursively initialize the widget with the base element as the root element locator
                     initializeHelper(widget, baseElement);
                 } else if (currentValue instanceof AbstractBasePageObject<?, ?, ?, ?, ?, ?>) {
                     // The field is non-null and a page object, set the driver for the page

@@ -35,9 +35,8 @@ public final class TestPageObjectInitializer
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    protected <T extends AbstractBaseWidgetObject<WebElement, TestPatientConfig, TestPatientElementLocator, TestPatientElement>> T buildWidget(Field field) {
-        return (T) mock(field.getType());
+    protected <T extends AbstractBaseWidgetObject<WebElement, TestPatientConfig, TestPatientElementLocator, TestPatientElement>> T buildWidget(Class<T> widgetClass) {
+        return mock(widgetClass);
     }
 
     @Override
