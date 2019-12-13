@@ -2,7 +2,6 @@ package com.redfin.selenium;
 
 import com.redfin.selenium.implementation.TestBasePageObject;
 import com.redfin.selenium.implementation.TestPatientDriver;
-import com.redfin.selenium.implementation.TestPatientElement;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

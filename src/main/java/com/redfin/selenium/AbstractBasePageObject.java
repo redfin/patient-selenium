@@ -33,7 +33,6 @@ public abstract class AbstractBasePageObject<D extends WebDriver,
      * Only intended for use by the AbstractPageObjectInitializer so make
      * the visibility package private.
      */
-
     void setDriver(P driver) {
         if (null != this.driver) {
             throw new PageObjectInitializationException("This page object was already initialized");

@@ -2,7 +2,6 @@ package com.redfin.selenium;
 
 import com.redfin.patience.PatientWait;
 import com.redfin.selenium.implementation.TestPatientConfig;
-import com.redfin.selenium.implementation.TestPatientDriver;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
@@ -18,7 +17,6 @@ import static org.mockito.Mockito.when;
 
 final class TestMocks {
 
-    @SuppressWarnings("unchecked")
     static TestPatientConfig getMockConfig() {
         TestPatientConfig config = mock(TestPatientConfig.class);
         PatientWait wait = mock(PatientWait.class);

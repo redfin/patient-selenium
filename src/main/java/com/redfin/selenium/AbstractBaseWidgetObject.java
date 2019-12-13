@@ -31,7 +31,6 @@ public abstract class AbstractBaseWidgetObject<W extends WebElement,
      * Only intended for use by the AbstractPageObjectInitializer so make
      * the visibility package private.
      */
-
     void setWidgetElement(E value) {
         if (null != widgetElement) {
             throw new PageObjectInitializationException("This widget was already initialized");

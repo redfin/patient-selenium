@@ -11,8 +11,8 @@ import static com.redfin.validity.Validity.validate;
  * @param <W> the type of {@link WebElement} for the implementing subclass.
  * @param <C> the concrete type of {@link AbstractPatientConfig} for the implementing subclass.
  */
-public abstract class AbstractBaseObject<W extends WebElement,
-                                         C extends AbstractPatientConfig<W>> {
+abstract class AbstractBaseObject<W extends WebElement,
+                                  C extends AbstractPatientConfig<W>> {
 
     private final C config;
     private final String description;
@@ -27,8 +27,8 @@ public abstract class AbstractBaseObject<W extends WebElement,
      *
      * @throws IllegalArgumentException if either argument is null or if description is empty.
      */
-    public AbstractBaseObject(C config,
-                              String description) {
+    AbstractBaseObject(C config,
+                       String description) {
         this.config = validate().that(config).isNotNull();
         this.description = validate().that(description).isNotEmpty();
     }

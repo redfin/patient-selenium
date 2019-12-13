@@ -9,15 +9,16 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.lang.reflect.Field;
-import java.util.Optional;
+
+import static org.mockito.Mockito.mock;
 
 public final class TestPageObjectInitializer
            extends AbstractPageObjectInitializer<WebDriver,
-        WebElement,
-        TestPatientConfig,
-        TestPatientDriver,
-        TestPatientElementLocator,
-        TestPatientElement> {
+                                                 WebElement,
+                                                 TestPatientConfig,
+                                                 TestPatientDriver,
+                                                 TestPatientElementLocator,
+                                                 TestPatientElement> {
 
     public TestPageObjectInitializer(TestPatientDriver driver) {
         super(driver);
@@ -34,8 +35,9 @@ public final class TestPageObjectInitializer
     }
 
     @Override
-    protected <T extends AbstractBaseWidgetObject<WebElement, TestPatientConfig, TestPatientElementLocator, TestPatientElement>> Optional<T> buildWidget(Class<T> clazz) {
-        return Optional.empty();
+    @SuppressWarnings("unchecked")
+    protected <T extends AbstractBaseWidgetObject<WebElement, TestPatientConfig, TestPatientElementLocator, TestPatientElement>> T buildWidget(Field field) {
+        return (T) mock(field.getType());
     }
 
     @Override

@@ -17,7 +17,6 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.lang.reflect.Field;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 import static org.mockito.Mockito.mock;
@@ -108,7 +107,7 @@ final class AbstractPageObjectInitializerTest {
                                  () -> Assertions.assertEquals("chrome.find(By.cssSelector: fooB)", pageA.pageB.fooB.toString()),
                                  () -> Assertions.assertEquals("chrome.find(By.cssSelector: fooC)", pageA.pageB.pageC.fooC.toString()),
                                  () -> Assertions.assertNull(pageA.pageB.pageC.pageD.fooD),
-                                 () -> Assertions.assertNull(pageA.nullWidget));
+                                 () -> Assertions.assertNotNull(pageA.nullWidget));
         }
 
         @Test
@@ -154,6 +153,12 @@ final class AbstractPageObjectInitializerTest {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
+        protected <T extends AbstractBaseWidgetObject<WebElement, TestPatientConfig, TestPatientElementLocator, TestPatientElement>> T buildWidget(Field field) {
+            return (T) mock(field.getType());
+        }
+
+        @Override
         protected Class<TestPatientElement> getElementClass() {
             return TestPatientElement.class;
         }
@@ -161,11 +166,6 @@ final class AbstractPageObjectInitializerTest {
         @Override
         protected Class<TestPatientElementLocator> getElementLocatorClass() {
             return TestPatientElementLocator.class;
-        }
-
-        @Override
-        protected <T extends AbstractBaseWidgetObject<WebElement, TestPatientConfig, TestPatientElementLocator, TestPatientElement>> Optional<T> buildWidget(Class<T> clazz) {
-            return Optional.empty();
         }
 
         @Override
@@ -196,6 +196,7 @@ final class AbstractPageObjectInitializerTest {
         @FindByCss("widget")
         private final Widget widget = new Widget();
 
+        @FindByCss("widgetNull")
         private final Widget nullWidget = null;
 
         @FindByCss("fooAElement")
