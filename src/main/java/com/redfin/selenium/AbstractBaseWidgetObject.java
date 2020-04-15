@@ -20,7 +20,7 @@ public abstract class AbstractBaseWidgetObject<W extends WebElement,
     /**
      * @return the set {@link E} element for this widget.
      */
-    protected final E getWidgetElement() {
+    public final E getWidgetElement() {
         if (null == widgetElement) {
             throw new PageObjectInitializationException("This widget was never initialized");
         }
