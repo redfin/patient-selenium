@@ -116,6 +116,20 @@ public abstract class AbstractPatientDriver<D extends WebDriver,
     }
 
     /**
+     * If the cached {@link WebDriver} is null, set the value according to the given
+     * web driver supplier.
+     *
+     * @throws IllegalStateException if the web driver supplier returns a null driver.
+     */
+    protected final void initializeDriver() {
+        if (null == driver) {
+            driver = expect().withMessage("Received a null web driver from the driver supplier")
+                             .that(webDriverSupplier.get())
+                             .isNotNull();
+        }
+    }
+
+    /**
      * @param by the {@link By} locator to create a description for.
      *           Will never be null.
      *

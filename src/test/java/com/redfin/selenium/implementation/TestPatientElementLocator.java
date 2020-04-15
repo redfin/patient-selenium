@@ -15,11 +15,12 @@ public final class TestPatientElementLocator
 
     public TestPatientElementLocator(TestPatientConfig config,
                                      String description,
+                                     Runnable driverInitializer,
                                      Supplier<List<WebElement>> elementListSupplier,
                                      PatientWait wait,
                                      Duration timeout,
                                      Predicate<WebElement> filter) {
-        super(config, description, elementListSupplier, wait, timeout, filter);
+        super(config, description, driverInitializer, elementListSupplier, wait, timeout, filter);
     }
 
     @Override
@@ -28,6 +29,7 @@ public final class TestPatientElementLocator
                                               Predicate<WebElement> filter) {
         return new TestPatientElementLocator(getConfig(),
                                              getDescription(),
+                                             getDriverInitializer(),
                                              getElementListSupplier(),
                                              wait,
                                              timeout,
@@ -41,9 +43,11 @@ public final class TestPatientElementLocator
 
     @Override
     protected TestPatientElement buildElement(String elementDescription,
+                                              Runnable driverInitializer,
                                               Supplier<Optional<WebElement>> elementSupplier) {
         return new TestPatientElement(getConfig(),
                                       elementDescription,
+                                      getDriverInitializer(),
                                       elementSupplier,
                                       getWait(),
                                       getTimeout());

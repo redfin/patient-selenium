@@ -13,6 +13,7 @@ import java.util.function.Supplier;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 final class TestMocks {
@@ -49,6 +50,10 @@ final class TestMocks {
     @SuppressWarnings("unchecked")
     static Predicate<WebElement> getMockFilter() {
         return mock(Predicate.class);
+    }
+
+    static Runnable getSpyRunnable() {
+        return spy(Runnable.class);
     }
 
     private TestMocks() {
