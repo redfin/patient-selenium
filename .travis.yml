@@ -1,5 +1,6 @@
 sudo: false
 language: java
+dist: trusty
 
 jdk:
   - oraclejdk8
@@ -11,6 +12,7 @@ addons:
 
 install:
   - mvn clean install -DskipTests
+
 script:
   - mvn clean test
 
@@ -20,4 +22,3 @@ notifications:
 branches:
   only:
     - master
-
