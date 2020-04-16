@@ -92,6 +92,20 @@ public abstract class AbstractPatientDriver<D extends WebDriver,
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     /**
+     * Check if the cached driver is null. If so, get the driver from
+     * the web driver supplier and set it.
+     *
+     * @throws IllegalStateException if the returned driver from the supplier is null.
+     */
+    protected final void initializeDriver() {
+        if (null == driver) {
+            driver = expect().withMessage("Received a null web driver from the driver supplier")
+                             .that(webDriverSupplier.get())
+                             .isNotNull();
+        }
+    }
+
+    /**
      * @return the {@link Supplier} of {@link WebDriver}s for this instance.
      */
     protected final Supplier<D> getWebDriverSupplier() {
@@ -140,11 +154,7 @@ public abstract class AbstractPatientDriver<D extends WebDriver,
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     private <R> R execute(Function<D, R> function) {
-        if (null == driver) {
-            driver = expect().withMessage("Received a null web driver from the driver supplier")
-                             .that(webDriverSupplier.get())
-                             .isNotNull();
-        }
+        initializeDriver();
         return function.apply(driver);
     }
 
