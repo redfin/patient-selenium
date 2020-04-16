@@ -35,7 +35,6 @@ public abstract class AbstractPatientElement<W extends WebElement,
            implements FindsElements<W, C, L, THIS>,
                       WrappedExecutor<W> {
 
-    private final Runnable driverInitializer;
     private final Supplier<Optional<W>> elementSupplier;
     private final PatientWait wait;
     private final Duration timeout;
@@ -45,28 +44,23 @@ public abstract class AbstractPatientElement<W extends WebElement,
     /**
      * Create a new, lazily located, instance of {@link AbstractPatientElement}.
      *
-     * @param config            the {@link C} for this element.
-     *                          May not be null.
-     * @param description       the String description of this element.
-     *                          May not be null or empty.
-     * @param driverInitializer the {@link Runnable} code block to make sure the
-     *                          driver is initialized.
-     *                          May not be null.
-     * @param elementSupplier   the {@link Supplier} of an element for this to wrap.
-     *                          May not be null. Should never return null.
-     * @param wait              the {@link PatientWait} for waiting for a valid element.
-     *                          May not be null.
-     * @param timeout           the {@link Duration} timeout used when waiting for an element.
-     *                          May not be null or negative.
+     * @param config          the {@link C} for this element.
+     *                        May not be null.
+     * @param description     the String description of this element.
+     *                        May not be null or empty.
+     * @param elementSupplier the {@link Supplier} of an element for this to wrap.
+     *                        May not be null. Should never return null.
+     * @param wait            the {@link PatientWait} for waiting for a valid element.
+     *                        May not be null.
+     * @param timeout         the {@link Duration} timeout used when waiting for an element.
+     *                        May not be null or negative.
      */
     public AbstractPatientElement(C config,
                                   String description,
-                                  Runnable driverInitializer,
                                   Supplier<Optional<W>> elementSupplier,
                                   PatientWait wait,
                                   Duration timeout) {
         super(config, description);
-        this.driverInitializer = validate().that(driverInitializer).isNotNull();
         this.elementSupplier = validate().that(elementSupplier).isNotNull();
         this.wait = validate().that(wait).isNotNull();
         this.timeout = validate().that(timeout).isGreaterThanOrEqualToZero();
@@ -163,13 +157,6 @@ public abstract class AbstractPatientElement<W extends WebElement,
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     /**
-     * @return the {@link Runnable} driver initializer for this instance.
-     */
-    protected final Runnable getDriverInitializer() {
-        return driverInitializer;
-    }
-
-    /**
      * @return the given {@link Supplier} of an element for this instance.
      */
     protected final Supplier<Optional<W>> getElementSupplier() {
@@ -236,9 +223,6 @@ public abstract class AbstractPatientElement<W extends WebElement,
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     private <R> R execute(Function<W, R> function) {
-        // Make sure the driver is initialized
-        driverInitializer.run();
-        // Actually execute the requested function
         RuntimeException caught = null;
         for (int i = 0; i < getConfig().getMaxElementActionAttempts(); i++) {
             try {

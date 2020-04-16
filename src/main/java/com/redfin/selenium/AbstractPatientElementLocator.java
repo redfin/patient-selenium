@@ -31,7 +31,6 @@ public abstract class AbstractPatientElementLocator<W extends WebElement,
                                                     E extends AbstractPatientElement<W, C, THIS, E>>
               extends AbstractBaseObject<W, C> {
 
-    private final Runnable driverInitializer;
     private final Supplier<List<W>> elementListSupplier;
     private final PatientWait wait;
     private final Duration timeout;
@@ -45,9 +44,6 @@ public abstract class AbstractPatientElementLocator<W extends WebElement,
      *                            May not be null.
      * @param description         the String description for this element locator.
      *                            May not be null or empty.
-     * @param driverInitializer   the {@link Runnable} code block to make sure the
-     *                            driver is initialized.
-     *                            May not be null.
      * @param elementListSupplier the {@link Supplier} of a list of {@link WebElement}s for this
      *                            element locator.
      *                            May not be null.
@@ -62,13 +58,11 @@ public abstract class AbstractPatientElementLocator<W extends WebElement,
      */
     public AbstractPatientElementLocator(C config,
                                          String description,
-                                         Runnable driverInitializer,
                                          Supplier<List<W>> elementListSupplier,
                                          PatientWait wait,
                                          Duration timeout,
                                          Predicate<W> filter) {
         super(config, description);
-        this.driverInitializer = validate().that(driverInitializer).isNotNull();
         this.elementListSupplier = validate().that(elementListSupplier).isNotNull();
         this.wait = validate().that(wait).isNotNull();
         this.timeout = validate().that(timeout).isGreaterThanOrEqualToZero();
@@ -108,7 +102,7 @@ public abstract class AbstractPatientElementLocator<W extends WebElement,
         validate().withMessage("Cannot get an element with a negative index")
                   .that(index)
                   .isAtLeast(0);
-        return builtElementMap.computeIfAbsent(index, i -> buildElement(getElementDescription(i), driverInitializer, () -> this.findElement(i)));
+        return builtElementMap.computeIfAbsent(index, i -> buildElement(getElementDescription(i), () -> this.findElement(i)));
     }
 
     /**
@@ -124,7 +118,7 @@ public abstract class AbstractPatientElementLocator<W extends WebElement,
         List<W> foundElements = getListPatiently();
         List<E> builtElements = new ArrayList<>(foundElements.size());
         for (int index = 0; index < foundElements.size(); index++) {
-            E element = builtElementMap.computeIfAbsent(index, i -> buildElement(getElementDescription(i), driverInitializer, () -> findElement(i)));
+            E element = builtElementMap.computeIfAbsent(index, i -> buildElement(getElementDescription(i), () -> findElement(i)));
             element.setCachedElement(foundElements.get(index));
             builtElements.add(element);
         }
@@ -199,13 +193,6 @@ public abstract class AbstractPatientElementLocator<W extends WebElement,
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     /**
-     * @return the {@link Runnable} driver initializer for this instance.
-     */
-    protected final Runnable getDriverInitializer() {
-        return driverInitializer;
-    }
-
-    /**
      * @return the {@link Supplier} of a list of elements for this instance.
      */
     protected final Supplier<List<W>> getElementListSupplier() {
@@ -261,18 +248,14 @@ public abstract class AbstractPatientElementLocator<W extends WebElement,
     protected abstract String getElementDescription(int index);
 
     /**
-     * @param elementDescription  the String description of the element to be built.
-     *                            Will never be null or empty.
-     * @param driverInitializer   the {@link Runnable} code block to make sure the
-     *                            driver is initialized.
-     *                            May not be null.
-     * @param elementSupplier     the {@link Supplier} of elements for the given element.
-     *                            Will never be null.
+     * @param elementDescription the String description of the element to be built.
+     *                           Will never be null or empty.
+     * @param elementSupplier    the {@link Supplier} of elements for the given element.
+     *                           Will never be null.
      *
      * @return an element for the given description and element supplier.
      */
     protected abstract E buildElement(String elementDescription,
-                                      Runnable driverInitializer,
                                       Supplier<Optional<W>> elementSupplier);
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

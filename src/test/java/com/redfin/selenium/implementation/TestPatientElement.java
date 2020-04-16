@@ -15,11 +15,10 @@ public final class TestPatientElement
 
     public TestPatientElement(TestPatientConfig config,
                               String description,
-                              Runnable driverInitializer,
                               Supplier<Optional<WebElement>> elementSupplier,
                               PatientWait wait,
                               Duration timeout) {
-        super(config, description, driverInitializer, elementSupplier, wait, timeout);
+        super(config, description, elementSupplier, wait, timeout);
     }
 
     @Override
@@ -32,7 +31,6 @@ public final class TestPatientElement
                                                             Supplier<List<WebElement>> elementListSupplier) {
         return new TestPatientElementLocator(getConfig(),
                                              locatorDescription,
-                                             getDriverInitializer(),
                                              elementListSupplier,
                                              getConfig().getDefaultWait(),
                                              getConfig().getDefaultTimeout(),

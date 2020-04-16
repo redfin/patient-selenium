@@ -26,10 +26,7 @@ import java.util.stream.Stream;
 
 import static com.redfin.selenium.TestMocks.getMockConfig;
 import static com.redfin.selenium.TestMocks.getMockElementSupplier;
-import static com.redfin.selenium.TestMocks.getSpyRunnable;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @DisplayName("An AbstractPatientElement")
 final class AbstractPatientElementTest {
@@ -233,18 +230,16 @@ final class AbstractPatientElementTest {
         void testGettersReturnExpectedValues() {
             TestPatientConfig config = getMockConfig();
             String description = "fooBarBazDescription";
-            Runnable driverInitializer = getSpyRunnable();
             Supplier<Optional<WebElement>> elementSupplier = getMockElementSupplier();
             PatientWait wait = mock(PatientWait.class);
             Duration timeout = mock(Duration.class);
             WebElement cachedElement = mock(WebElement.class);
-            TestPatientElement instance = getInstance(config, description, driverInitializer, elementSupplier, wait, timeout);
+            TestPatientElement instance = getInstance(config, description, elementSupplier, wait, timeout);
             instance.setCachedElement(cachedElement);
             // Test the instance's getter values
             Assertions.assertAll(() -> Assertions.assertSame(config, instance.getConfig(), "Should return the given config"),
                                  () -> Assertions.assertSame(description, instance.getDescription(), "Should return the given description"),
                                  () -> Assertions.assertSame(description, instance.toString(), "Should return given description for toString()"),
-                                 () -> Assertions.assertSame(driverInitializer, instance.getDriverInitializer(), "Should return the given driver initializer"),
                                  () -> Assertions.assertSame(elementSupplier, instance.getElementSupplier(), "Should return the given element supplier"),
                                  () -> Assertions.assertSame(wait, instance.getWait(), "Should return the given wait"),
                                  () -> Assertions.assertSame(timeout, instance.getTimeout(), "Should return the given timeout"),
@@ -254,20 +249,6 @@ final class AbstractPatientElementTest {
         @Nested
         @DisplayName("when executing commands on the wrapped element")
         final class ExecuteTest {
-
-            @Test
-            @DisplayName("calls the driver initializer runnable")
-            void testCallsGivenDriverInitializer() {
-                Runnable driverInitializer = getSpyRunnable();
-                TestPatientElement instance = getInstance(getMockConfig(),
-                                                          "DefaultDescription",
-                                                          driverInitializer,
-                                                          () -> Optional.of(mock(WebElement.class)),
-                                                          PatientWait.builder().build(),
-                                                          Duration.ofSeconds(5));
-                instance.apply(e -> e);
-                verify(driverInitializer).run();
-            }
 
             @Test
             @DisplayName("looks up an element if the cache is null")
@@ -379,7 +360,6 @@ final class AbstractPatientElementTest {
     private static TestPatientElement getInstance() {
         return getInstance(getMockConfig(),
                            "DefaultDescription",
-                           getSpyRunnable(),
                            getMockElementSupplier(),
                            mock(PatientWait.class),
                            mock(Duration.class));
@@ -389,7 +369,6 @@ final class AbstractPatientElementTest {
                                                   Duration timeout) {
         return getInstance(getMockConfig(),
                            "DefaultDescription",
-                           getSpyRunnable(),
                            elementSupplier,
                            PatientWait.builder().build(),
                            timeout);
@@ -402,21 +381,6 @@ final class AbstractPatientElementTest {
                                                   Duration timeout) {
         return new TestPatientElement(config,
                                       description,
-                                      getSpyRunnable(),
-                                      elementSupplier,
-                                      wait,
-                                      timeout);
-    }
-
-    private static TestPatientElement getInstance(TestPatientConfig config,
-                                                  String description,
-                                                  Runnable driverInitializer,
-                                                  Supplier<Optional<WebElement>> elementSupplier,
-                                                  PatientWait wait,
-                                                  Duration timeout) {
-        return new TestPatientElement(config,
-                                      description,
-                                      driverInitializer,
                                       elementSupplier,
                                       wait,
                                       timeout);

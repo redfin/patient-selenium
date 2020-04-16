@@ -27,7 +27,6 @@ public final class TestPatientDriver
                                                             Supplier<List<WebElement>> elementListSupplier) {
         return new TestPatientElementLocator(getConfig(),
                                              locatorDescription,
-                                             this::initializeDriver,
                                              elementListSupplier,
                                              getConfig().getDefaultWait(),
                                              getConfig().getDefaultTimeout(),

@@ -306,7 +306,6 @@ final class AbstractPatientElementLocatorTest {
                                                          Predicate<WebElement> filter) {
         return new TestPatientElementLocator(config,
                                              description,
-                                             () -> {},
                                              elementListSupplier,
                                              wait,
                                              timeout,
